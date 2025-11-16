@@ -1,0 +1,21 @@
+{
+  "name": "pokeagents-backend",
+  "version": "1.0.0",
+  "description": "Backend API for PokéAgents dApp",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "openai": "^3.3.0",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.7.1",
+    "axios": "^1.5.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  }
+}
