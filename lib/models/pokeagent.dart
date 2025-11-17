@@ -17,6 +17,7 @@ class PokeAgent {
   final int battlesWon;
   final int battlesLost;
   final int totalChats;
+  final bool isFavorite;
 
   PokeAgent({
     required this.id,
@@ -37,6 +38,7 @@ class PokeAgent {
     this.battlesWon = 0,
     this.battlesLost = 0,
     this.totalChats = 0,
+    this.isFavorite = false,
   }) : stats = stats ?? _defaultStats(type),
        badges = badges ?? [],
        createdAt = createdAt ?? DateTime.now();
@@ -129,6 +131,7 @@ class PokeAgent {
     int? battlesWon,
     int? battlesLost,
     int? totalChats,
+    bool? isFavorite,
   }) {
     return PokeAgent(
       id: id ?? this.id,
@@ -149,6 +152,7 @@ class PokeAgent {
       battlesWon: battlesWon ?? this.battlesWon,
       battlesLost: battlesLost ?? this.battlesLost,
       totalChats: totalChats ?? this.totalChats,
+      isFavorite: isFavorite ?? this.isFavorite,
     );
   }
 
@@ -172,6 +176,7 @@ class PokeAgent {
       'battlesWon': battlesWon,
       'battlesLost': battlesLost,
       'totalChats': totalChats,
+      'isFavorite': isFavorite,
     };
   }
 
@@ -198,6 +203,7 @@ class PokeAgent {
       battlesWon: json['battlesWon'] as int? ?? 0,
       battlesLost: json['battlesLost'] as int? ?? 0,
       totalChats: json['totalChats'] as int? ?? 0,
+      isFavorite: json['isFavorite'] as bool? ?? false,
     );
   }
 }

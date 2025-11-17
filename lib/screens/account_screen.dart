@@ -5,277 +5,524 @@ import 'package:provider/provider.dart';
 import '../services/wallet_service.dart';
 import 'login_screen.dart';
 
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends StatefulWidget {
   const AccountScreen({super.key});
+
+  @override
+  State<AccountScreen> createState() => _AccountScreenState();
+}
+
+class _AccountScreenState extends State<AccountScreen> {
+  bool _megaEvolutionsEnabled = false;
+  bool _otherFormsEnabled = false;
+  bool _pokedexUpdatesEnabled = true;
+  bool _pokemonWorldEnabled = true;
 
   @override
   Widget build(BuildContext context) {
     final walletService = Provider.of<WalletService>(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 0,
-        title: Text(
-          'Account',
-          style: GoogleFonts.poppins(
-            color: Colors.black,
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Profile Section
-            FadeInDown(
-              child: Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.grey.shade200, width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 10,
-                      offset: const Offset(0, 4),
+      backgroundColor: const Color(0xFF1A1F36),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              const SizedBox(height: 20),
+
+              // Header Text
+              FadeInDown(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Text(
+                    'Profile not registered',
+                    style: GoogleFonts.poppins(
+                      color: Colors.white70,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w400,
                     ),
-                  ],
+                  ),
                 ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 60,
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF3861FB).withOpacity(0.1),
-                        shape: BoxShape.circle,
+              ),
+
+              const SizedBox(height: 20),
+
+              // Registration Card
+              FadeInDown(
+                delay: const Duration(milliseconds: 100),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: const Offset(0, 10),
                       ),
-                      child: const Icon(
-                        Icons.person,
-                        size: 30,
-                        color: Color(0xFF3861FB),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
                         children: [
-                          Text(
-                            'PokéTrainer',
-                            style: GoogleFonts.poppins(
-                              color: Colors.black,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                          // Pokemon Character Image Placeholder
+                          Container(
+                            width: 80,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.cyan.shade100,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Icon(
+                              Icons.catching_pokemon,
+                              size: 50,
+                              color: Colors.cyan.shade700,
                             ),
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            walletService.isConnected
-                                ? walletService.shortAddress
-                                : 'Not connected',
-                            style: GoogleFonts.poppins(
-                              color: Colors.black54,
-                              fontSize: 14,
+                          const SizedBox(width: 16),
+
+                          // Character Image Placeholder
+                          Container(
+                            width: 60,
+                            height: 80,
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade100,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Icon(
+                              Icons.person,
+                              size: 40,
+                              color: Colors.red.shade700,
                             ),
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
 
-            const SizedBox(height: 32),
+                      const SizedBox(height: 20),
 
-            // Menu Items
-            FadeInUp(
-              delay: const Duration(milliseconds: 200),
-              child: Text(
-                'Account Settings',
-                style: GoogleFonts.poppins(
-                  color: Colors.black,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 16),
-
-            // Wallet Connection
-            FadeInUp(
-              delay: const Duration(milliseconds: 300),
-              child: _buildMenuItem(
-                icon: Icons.account_balance_wallet,
-                title: 'Wallet',
-                subtitle:
-                    walletService.isConnected
-                        ? 'Connected to ${walletService.shortAddress}'
-                        : 'Connect your wallet',
-                onTap: () async {
-                  if (!walletService.isConnected) {
-                    await walletService.connectWallet();
-                  }
-                },
-                trailing:
-                    walletService.isConnected
-                        ? Container(
-                          width: 12,
-                          height: 12,
-                          decoration: const BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                        )
-                        : const Icon(Icons.chevron_right),
-              ),
-            ),
-
-            // Statistics
-            FadeInUp(
-              delay: const Duration(milliseconds: 400),
-              child: _buildMenuItem(
-                icon: Icons.bar_chart,
-                title: 'Statistics',
-                subtitle: 'View your PokéAgent stats',
-                onTap: () {
-                  // TODO: Navigate to statistics screen
-                },
-              ),
-            ),
-
-            // Achievements
-            FadeInUp(
-              delay: const Duration(milliseconds: 500),
-              child: _buildMenuItem(
-                icon: Icons.emoji_events,
-                title: 'Achievements',
-                subtitle: 'View your badges and rewards',
-                onTap: () {
-                  // TODO: Navigate to achievements screen
-                },
-              ),
-            ),
-
-            // Settings
-            FadeInUp(
-              delay: const Duration(milliseconds: 600),
-              child: _buildMenuItem(
-                icon: Icons.settings,
-                title: 'Settings',
-                subtitle: 'App preferences and configuration',
-                onTap: () {
-                  // TODO: Navigate to settings screen
-                },
-              ),
-            ),
-
-            // Help & Support
-            FadeInUp(
-              delay: const Duration(milliseconds: 700),
-              child: _buildMenuItem(
-                icon: Icons.help_outline,
-                title: 'Help & Support',
-                subtitle: 'Get help and contact support',
-                onTap: () {
-                  // TODO: Navigate to help screen
-                },
-              ),
-            ),
-
-            const SizedBox(height: 32),
-
-            // Sign Out
-            FadeInUp(
-              delay: const Duration(milliseconds: 800),
-              child: Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(bottom: 20),
-                child: OutlinedButton(
-                  onPressed: () {
-                    // Navigate back to login
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
+                      Text(
+                        'Keep your Pokédex up to date and participate in this world.',
+                        style: GoogleFonts.poppins(
+                          color: Colors.grey.shade700,
+                          fontSize: 13,
+                          height: 1.5,
+                        ),
                       ),
-                    );
-                  },
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(
-                      color: Color(0xFFCD3131),
-                      width: 1.5,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    backgroundColor: Colors.white,
-                  ),
-                  child: Text(
-                    'Sign Out',
-                    style: GoogleFonts.poppins(
-                      color: const Color(0xFFCD3131),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
+
+                      const SizedBox(height: 20),
+
+                      // Sign In / Sign Up Button
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.of(context).pushReplacement(
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF3861FB),
+                            elevation: 0,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              side: const BorderSide(
+                                color: Color(0xFF3861FB),
+                                width: 2,
+                              ),
+                            ),
+                          ),
+                          child: Text(
+                            'Sign In or Sign Up',
+                            style: GoogleFonts.poppins(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF3861FB),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
+
+              const SizedBox(height: 32),
+
+              // Settings Container
+              FadeInUp(
+                delay: const Duration(milliseconds: 200),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Pokedex Section
+                      _buildSectionHeader('Pokédex'),
+                      const SizedBox(height: 16),
+
+                      _buildToggleTile(
+                        title: 'Mega evolutions',
+                        subtitle: 'Enable mega evolution display',
+                        value: _megaEvolutionsEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            _megaEvolutionsEnabled = value;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildToggleTile(
+                        title: 'Other forms',
+                        subtitle: 'Enable alternate form display',
+                        value: _otherFormsEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            _otherFormsEnabled = value;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Notifications Section
+                      _buildSectionHeader('Notifications'),
+                      const SizedBox(height: 16),
+
+                      _buildToggleTile(
+                        title: 'Pokédex updates',
+                        subtitle: 'New Pokémon, abilities, info, etc.',
+                        value: _pokedexUpdatesEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            _pokedexUpdatesEnabled = value;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildToggleTile(
+                        title: 'Pokémon World',
+                        subtitle: 'Events and news from Pokémon world',
+                        value: _pokemonWorldEnabled,
+                        onChanged: (value) {
+                          setState(() {
+                            _pokemonWorldEnabled = value;
+                          });
+                        },
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // Language Section
+                      _buildSectionHeader('Language'),
+                      const SizedBox(height: 16),
+
+                      _buildInfoTile(
+                        title: 'Interface language',
+                        subtitle: 'Portuguese (PT-BR)',
+                        onTap: () {
+                          _showLanguageDialog('interface');
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildInfoTile(
+                        title: 'Game info language',
+                        subtitle: 'English (US)',
+                        onTap: () {
+                          _showLanguageDialog('game');
+                        },
+                      ),
+
+                      const SizedBox(height: 24),
+
+                      // General Section
+                      _buildSectionHeader('General'),
+                      const SizedBox(height: 16),
+
+                      _buildInfoTile(
+                        title: 'Version',
+                        subtitle: '0.8.12',
+                        onTap: null,
+                        showArrow: false,
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildInfoTile(
+                        title: 'Terms and conditions',
+                        subtitle: 'Everything you need to know',
+                        onTap: () {
+                          // Show terms
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildInfoTile(
+                        title: 'Help center',
+                        subtitle: 'Need help? Contact us',
+                        onTap: () {
+                          // Show help
+                        },
+                      ),
+
+                      const SizedBox(height: 12),
+
+                      _buildInfoTile(
+                        title: 'About',
+                        subtitle: 'Learn more about the app',
+                        onTap: () {
+                          // Show about
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 32),
+            ],
+          ),
+        ),
+      ),
+
+      // Bottom Navigation
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: const Color(0xFF1A1F36),
+          border: Border(
+            top: BorderSide(color: Colors.white.withOpacity(0.1), width: 1),
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildBottomNavItem(Icons.explore_outlined, false),
+                _buildBottomNavItem(Icons.location_on_outlined, false),
+                _buildBottomNavItem(Icons.favorite_border, false),
+                _buildBottomNavItem(Icons.person, true),
+              ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.poppins(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: Colors.black87,
+      ),
+    );
+  }
+
+  Widget _buildToggleTile({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Row(
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                subtitle,
+                style: GoogleFonts.poppins(
+                  fontSize: 12,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        Switch(
+          value: value,
+          onChanged: onChanged,
+          activeColor: const Color(0xFF3861FB),
+          activeTrackColor: const Color(0xFF3861FB).withOpacity(0.5),
+          inactiveThumbColor: Colors.grey.shade400,
+          inactiveTrackColor: Colors.grey.shade300,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoTile({
+    required String title,
+    required String subtitle,
+    VoidCallback? onTap,
+    bool showArrow = true,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: GoogleFonts.poppins(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: GoogleFonts.poppins(
+                      fontSize: 12,
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (showArrow)
+              Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: Colors.grey.shade400,
+              ),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildMenuItem({
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required VoidCallback onTap,
-    Widget? trailing,
-  }) {
+  Widget _buildBottomNavItem(IconData icon, bool isActive) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200, width: 1),
+      padding: const EdgeInsets.all(12),
+      child: Icon(
+        icon,
+        color: isActive ? const Color(0xFFCD3131) : Colors.white54,
+        size: 28,
       ),
-      child: ListTile(
-        leading: Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: const Color(0xFF3861FB).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
+    );
+  }
+
+  void _showLanguageDialog(String type) {
+    showDialog(
+      context: context,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            title: Text(
+              type == 'interface' ? 'Interface Language' : 'Game Info Language',
+              style: GoogleFonts.poppins(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+              ),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildLanguageOption('English (US)', type),
+                _buildLanguageOption('Portuguese (PT-BR)', type),
+                _buildLanguageOption('Spanish (ES)', type),
+                _buildLanguageOption('French (FR)', type),
+                _buildLanguageOption('German (DE)', type),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text(
+                  'Cancel',
+                  style: GoogleFonts.poppins(
+                    color: const Color(0xFF3861FB),
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
           ),
-          child: Icon(icon, color: const Color(0xFF3861FB), size: 20),
-        ),
-        title: Text(
-          title,
-          style: GoogleFonts.poppins(
-            color: Colors.black,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+    );
+  }
+
+  Widget _buildLanguageOption(String language, String type) {
+    return InkWell(
+      onTap: () {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Language changed to $language',
+              style: GoogleFonts.poppins(),
+            ),
+            backgroundColor: const Color(0xFF3861FB),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                language,
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black87),
+              ),
+            ),
+            Icon(
+              Icons.check_circle,
+              color:
+                  language.contains('English')
+                      ? const Color(0xFF3861FB)
+                      : Colors.grey.shade300,
+              size: 20,
+            ),
+          ],
         ),
-        subtitle: Text(
-          subtitle,
-          style: GoogleFonts.poppins(color: Colors.black54, fontSize: 12),
-        ),
-        trailing: trailing ?? const Icon(Icons.chevron_right),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }

@@ -3,11 +3,13 @@ import 'package:provider/provider.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import '../utils/theme.dart';
 import '../utils/constants.dart';
 import '../models/pokeagent.dart';
 import '../services/wallet_service.dart';
+import '../data/pokemon_data.dart';
 
 class MintScreen extends StatefulWidget {
   const MintScreen({super.key});
@@ -127,198 +129,6 @@ class _MintScreenState extends State<MintScreen> {
       'Regice',
       'Snorlax',
     ],
-  };
-
-  final Map<String, String> _pokemonImages = {
-    // Fire Type
-    'Charizard':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png',
-    'Blaziken':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/257.png',
-    'Arcanine':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/59.png',
-    'Typhlosion':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/157.png',
-    'Infernape':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/392.png',
-    'Flareon':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/136.png',
-    'Rapidash':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/78.png',
-    'Ninetales':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/38.png',
-    'Magmar':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/126.png',
-    'Houndoom':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/229.png',
-    'Torkoal':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/324.png',
-    'Camerupt':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/323.png',
-    'Salamence':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/373.png',
-    'Entei':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/244.png',
-    'Ho-Oh':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/250.png',
-
-    // Water Type
-    'Blastoise':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png',
-    'Swampert':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/260.png',
-    'Gyarados':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/130.png',
-    'Feraligatr':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/160.png',
-    'Empoleon':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/395.png',
-    'Kingdra':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/230.png',
-    'Milotic':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/350.png',
-    'Ludicolo':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/272.png',
-    'Swalot':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/317.png',
-    'Quagsire':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/195.png',
-    'Pelipper':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/279.png',
-    'Crawdaunt':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/342.png',
-    'Whiscash':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/340.png',
-    'Relicanth':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/369.png',
-    'Huntail':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/367.png',
-
-    // Electric Type
-    'Pikachu':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
-    'Raichu':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png',
-    'Electivire':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/466.png',
-    'Magnezone':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/462.png',
-    'Electabuzz':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/125.png',
-    'Zapdos':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/145.png',
-    'Manectric':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/310.png',
-    'Electrode':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/101.png',
-    'Ampharos':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/181.png',
-    'Jolteon':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/135.png',
-    'Luxray':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/405.png',
-    'Rotom':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/479.png',
-    'Elekid':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/239.png',
-    'Mareep':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/179.png',
-    'Pichu':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/172.png',
-
-    // Psychic Type
-    'Mewtwo':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png',
-    'Gardevoir':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/282.png',
-    'Gallade':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/475.png',
-    'Metagross':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/376.png',
-    'Alakazam':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/65.png',
-    'Espeon':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/196.png',
-    'Mew':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png',
-    'Celebi':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/251.png',
-    'Jirachi':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/385.png',
-    'Deoxys':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/386.png',
-    'Bronzor':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/436.png',
-    'Chimecho':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/358.png',
-    'Wobbuffet':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/202.png',
-    'Slowking':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/199.png',
-    'Xatu':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/178.png',
-
-    // Grass Type
-    'Venusaur':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png',
-    'Sceptile':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/254.png',
-    'Torterra':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/389.png',
-    'Turtwig':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/387.png',
-    'Snivy':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/495.png',
-    'Leafeon':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/470.png',
-    'Chikorita':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/152.png',
-    'Meganium':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/154.png',
-    'Treecko':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/252.png',
-    'Grovyle':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/253.png',
-    'Tropius':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/357.png',
-    'Carnivine':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/455.png',
-    'Budew':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/406.png',
-    'Roserade':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/407.png',
-    'Tangela':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/114.png',
-
-    // Ice Type
-    'Articuno':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/144.png',
-    'Glalie':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/362.png',
-    'Weavile':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/461.png',
-    'Glaceon':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/471.png',
-    'Lapras':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/131.png',
-    'Mamoswine':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/473.png',
-    'Froslass':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/478.png',
-    'Sneasel':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/215.png',
-    'Snorunt':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/361.png',
-    'Spheal':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/363.png',
-    'Sealeo':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/364.png',
-    'Walrein':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/365.png',
-    'Regice':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/378.png',
-    'Snorlax':
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png',
   };
 
   @override
@@ -542,8 +352,7 @@ class _MintScreenState extends State<MintScreen> {
         imageUrl:
             _selectedImage != null
                 ? _selectedImage!.path
-                : (_pokemonImages[_selectedPokemon!] ??
-                    'https://via.placeholder.com/300?text=$_selectedPokemon'),
+                : PokemonData.getPngUrl(_selectedPokemon!),
         personality: 'Friendly',
       );
 
@@ -890,13 +699,32 @@ class _MintScreenState extends State<MintScreen> {
                                             borderRadius: BorderRadius.circular(
                                               12,
                                             ),
-                                            image: DecorationImage(
-                                              image: NetworkImage(
-                                                _pokemonImages[pokemon] ??
-                                                    'https://via.placeholder.com/300?text=$pokemon',
-                                              ),
-                                              fit: BoxFit.cover,
+                                          ),
+                                          child: CachedNetworkImage(
+                                            key: UniqueKey(),
+                                            imageUrl: PokemonData.getPngUrl(
+                                              pokemon,
                                             ),
+                                            placeholder:
+                                                (
+                                                  context,
+                                                  url,
+                                                ) => CircularProgressIndicator(
+                                                  valueColor:
+                                                      AlwaysStoppedAnimation<
+                                                        Color
+                                                      >(typeColor),
+                                                  strokeWidth: 2,
+                                                ),
+                                            errorWidget:
+                                                (context, url, error) => Icon(
+                                                  Icons.catching_pokemon,
+                                                  color: typeColor,
+                                                  size: 32,
+                                                ),
+                                            fit: BoxFit.cover,
+                                            memCacheWidth: 60,
+                                            memCacheHeight: 60,
                                           ),
                                         ),
                                         const SizedBox(height: 8),
@@ -954,18 +782,46 @@ class _MintScreenState extends State<MintScreen> {
                                     width: 50,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
-                                      image: DecorationImage(
-                                        image:
-                                            _selectedImage != null
-                                                ? FileImage(_selectedImage!)
-                                                : NetworkImage(
-                                                      _pokemonImages[_selectedPokemon!] ??
-                                                          'https://via.placeholder.com/300?text=$_selectedPokemon',
-                                                    )
-                                                    as ImageProvider,
-                                        fit: BoxFit.cover,
-                                      ),
                                     ),
+                                    child:
+                                        _selectedImage != null
+                                            ? Image.file(
+                                              _selectedImage!,
+                                              fit: BoxFit.cover,
+                                            )
+                                            : CachedNetworkImage(
+                                              key: UniqueKey(),
+                                              imageUrl: PokemonData.getPngUrl(
+                                                _selectedPokemon!,
+                                              ),
+                                              placeholder:
+                                                  (
+                                                    context,
+                                                    url,
+                                                  ) => CircularProgressIndicator(
+                                                    valueColor:
+                                                        AlwaysStoppedAnimation<
+                                                          Color
+                                                        >(
+                                                          AppTheme.getTypeColor(
+                                                            _selectedType!,
+                                                          ),
+                                                        ),
+                                                    strokeWidth: 2,
+                                                  ),
+                                              errorWidget:
+                                                  (context, url, error) => Icon(
+                                                    Icons.catching_pokemon,
+                                                    color:
+                                                        AppTheme.getTypeColor(
+                                                          _selectedType!,
+                                                        ),
+                                                    size: 24,
+                                                  ),
+                                              fit: BoxFit.cover,
+                                              memCacheWidth: 50,
+                                              memCacheHeight: 50,
+                                            ),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(

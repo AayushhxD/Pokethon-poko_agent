@@ -4,7 +4,6 @@ import 'package:animate_do/animate_do.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
-import '../utils/theme.dart';
 import '../models/pokeagent.dart';
 import '../services/wallet_service.dart';
 import '../widgets/pokeagent_card.dart';
@@ -12,7 +11,9 @@ import 'mint_screen.dart';
 import 'train_screen.dart';
 import 'battle_screen.dart';
 import 'evolution_screen.dart';
-import 'badges_screen.dart';
+import 'regions_screen.dart';
+import 'favorites_screen.dart';
+import 'battle_lobby_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -128,44 +129,303 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     final walletService = Provider.of<WalletService>(context);
 
+    // Define pages for bottom navigation
+    final List<Widget> _pages = [
+      _buildPokedexPage(walletService),
+      _buildAccountPage(walletService),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        child: Column(
-          children: [
-            // Header
-            _buildHeader(walletService),
+      body: IndexedStack(index: _currentIndex, children: _pages),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
 
-            // Content
-            Expanded(
-              child:
-                  _isLoading
-                      ? Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const CircularProgressIndicator(
-                              color: Color(0xFF3861FB),
-                              strokeWidth: 3,
+  // Pokedex Page (Main Page)
+  Widget _buildPokedexPage(WalletService walletService) {
+    return SafeArea(
+      child: Column(
+        children: [
+          _buildHeader(walletService),
+          Expanded(
+            child:
+                _isLoading
+                    ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const CircularProgressIndicator(
+                            color: Color(0xFFCD3131),
+                            strokeWidth: 3,
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'Loading agents...',
+                            style: GoogleFonts.poppins(
+                              color: Colors.grey.shade600,
+                              fontSize: 14,
                             ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'Loading agents...',
+                          ),
+                        ],
+                      ),
+                    )
+                    : _buildAgentGrid(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // Account Page
+  Widget _buildAccountPage(WalletService walletService) {
+    return SafeArea(
+      child: Column(
+        children: [
+          _buildSimpleHeader('Account'),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  // Profile Card
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFCD3131), Color(0xFFFF6B6B)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFCD3131).withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.1),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.person_rounded,
+                            size: 40,
+                            color: Color(0xFFCD3131),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Trainer',
+                          style: GoogleFonts.poppins(
+                            fontSize: 24,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        if (walletService.isConnected)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(
+                              walletService.shortAddress,
                               style: GoogleFonts.poppins(
-                                color: Colors.grey.shade600,
-                                fontSize: 14,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white,
                               ),
                             ),
-                          ],
+                          ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Stats Cards
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildStatCard(
+                          icon: Icons.catching_pokemon,
+                          label: 'Agents',
+                          value: '${_agents.length}',
+                          color: const Color(0xFFCD3131),
                         ),
-                      )
-                      : _buildAgentGrid(),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _buildStatCard(
+                          icon: Icons.favorite_rounded,
+                          label: 'Favorites',
+                          value: '${_agents.where((a) => a.isFavorite).length}',
+                          color: Colors.pink,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Settings Options
+                  _buildSettingsTile(
+                    icon: Icons.notifications_rounded,
+                    title: 'Notifications',
+                    onTap: () {},
+                  ),
+                  _buildSettingsTile(
+                    icon: Icons.language_rounded,
+                    title: 'Language',
+                    onTap: () {},
+                  ),
+                  _buildSettingsTile(
+                    icon: Icons.dark_mode_rounded,
+                    title: 'Dark Mode',
+                    onTap: () {},
+                  ),
+                  _buildSettingsTile(
+                    icon: Icons.info_rounded,
+                    title: 'About',
+                    onTap: () {},
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 32),
+          const SizedBox(height: 12),
+          Text(
+            value,
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+          Text(
+            label,
+            style: GoogleFonts.poppins(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingsTile({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFCD3131).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: const Color(0xFFCD3131), size: 22),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                title,
+                style: GoogleFonts.poppins(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.black87,
+                ),
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Colors.grey.shade400,
             ),
           ],
         ),
       ),
-      // Bottom Navigation Bar
-      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
+  Widget _buildSimpleHeader(String title) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              color: Colors.black,
+              letterSpacing: -0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -176,7 +436,7 @@ class _HomeScreenState extends State<HomeScreen> {
         color: Colors.white,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: Colors.black.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -209,13 +469,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            const Color(0xFF3861FB).withOpacity(0.15),
-                            const Color(0xFF3861FB).withOpacity(0.08),
+                            const Color(0xFFCD3131).withValues(alpha: 0.15),
+                            const Color(0xFFCD3131).withValues(alpha: 0.08),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(8),
                         border: Border.all(
-                          color: const Color(0xFF3861FB).withOpacity(0.2),
+                          color: const Color(0xFFCD3131).withValues(alpha: 0.2),
                         ),
                       ),
                       child: Row(
@@ -224,7 +484,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           const Icon(
                             Icons.catching_pokemon,
                             size: 14,
-                            color: Color(0xFF3861FB),
+                            color: Color(0xFFCD3131),
                           ),
                           const SizedBox(width: 6),
                           Text(
@@ -232,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: GoogleFonts.poppins(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
-                              color: const Color(0xFF3861FB),
+                              color: const Color(0xFFCD3131),
                             ),
                           ),
                         ],
@@ -259,7 +519,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.green.withOpacity(0.3),
+                                color: Colors.green.withValues(alpha: 0.3),
                                 blurRadius: 10,
                                 offset: const Offset(0, 3),
                               ),
@@ -276,7 +536,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   shape: BoxShape.circle,
                                   boxShadow: [
                                     BoxShadow(
-                                      color: Colors.white.withOpacity(0.5),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.5,
+                                      ),
                                       blurRadius: 4,
                                       spreadRadius: 1,
                                     ),
@@ -310,7 +572,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           ),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF3861FB),
+                            backgroundColor: const Color(0xFFCD3131),
                             foregroundColor: Colors.white,
                             padding: const EdgeInsets.symmetric(
                               horizontal: 18,
@@ -359,7 +621,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 border: Border.all(color: Colors.red.shade300, width: 2),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.red.withOpacity(0.1),
+                    color: Colors.red.withValues(alpha: 0.1),
                     blurRadius: 8,
                     spreadRadius: 2,
                   ),
@@ -397,11 +659,11 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(28),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1A1F36), // Dark navy blue
+                          color: const Color(0xFF1A1F36),
                           borderRadius: BorderRadius.circular(24),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withOpacity(0.3),
+                              color: Colors.black.withValues(alpha: 0.3),
                               blurRadius: 30,
                               spreadRadius: 5,
                               offset: const Offset(0, 10),
@@ -411,11 +673,10 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            // Warning Icon
                             Container(
                               padding: const EdgeInsets.all(18),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
+                                color: Colors.white.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
                               ),
                               child: Icon(
@@ -425,8 +686,6 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(height: 24),
-
-                            // Title
                             Text(
                               'Delete Agent?',
                               style: GoogleFonts.poppins(
@@ -436,23 +695,18 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                             ),
                             const SizedBox(height: 16),
-
-                            // Message
                             Text(
                               'Are you sure you want to delete ${agent.name}?\nThis action cannot be undone.',
                               textAlign: TextAlign.center,
                               style: GoogleFonts.poppins(
                                 fontSize: 14,
-                                color: Colors.white.withOpacity(0.7),
+                                color: Colors.white.withValues(alpha: 0.7),
                                 height: 1.6,
                               ),
                             ),
                             const SizedBox(height: 32),
-
-                            // Buttons
                             Row(
                               children: [
-                                // Cancel Button
                                 Expanded(
                                   child: OutlinedButton(
                                     onPressed:
@@ -462,7 +716,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         vertical: 16,
                                       ),
                                       side: BorderSide(
-                                        color: Colors.white.withOpacity(0.3),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.3,
+                                        ),
                                         width: 1.5,
                                       ),
                                       shape: RoundedRectangleBorder(
@@ -474,14 +730,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                       style: GoogleFonts.poppins(
                                         fontSize: 15,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.white.withOpacity(0.9),
+                                        color: Colors.white.withValues(
+                                          alpha: 0.9,
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                                 const SizedBox(width: 12),
-
-                                // Delete Button
                                 Expanded(
                                   child: ElevatedButton(
                                     onPressed:
@@ -545,20 +801,20 @@ class _HomeScreenState extends State<HomeScreen> {
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
-                const Color(0xFF3861FB).withOpacity(0.08),
-                const Color(0xFF3861FB).withOpacity(0.12),
+                const Color(0xFFCD3131).withValues(alpha: 0.08),
+                const Color(0xFFCD3131).withValues(alpha: 0.12),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: const Color(0xFF3861FB).withOpacity(0.3),
+              color: const Color(0xFFCD3131).withValues(alpha: 0.3),
               width: 2,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF3861FB).withOpacity(0.1),
+                color: const Color(0xFFCD3131).withValues(alpha: 0.1),
                 blurRadius: 10,
                 offset: const Offset(0, 4),
               ),
@@ -574,13 +830,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   shape: BoxShape.circle,
                   gradient: LinearGradient(
                     colors: [
-                      const Color(0xFF3861FB).withOpacity(0.2),
-                      const Color(0xFF3861FB).withOpacity(0.35),
+                      const Color(0xFFCD3131).withOpacity(0.2),
+                      const Color(0xFFCD3131).withOpacity(0.35),
                     ],
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF3861FB).withOpacity(0.2),
+                      color: const Color(0xFFCD3131).withOpacity(0.2),
                       blurRadius: 12,
                       spreadRadius: 2,
                     ),
@@ -589,7 +845,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: const Icon(
                   Icons.add_rounded,
                   size: 38,
-                  color: Color(0xFF3861FB),
+                  color: Color(0xFFCD3131),
                 ),
               ),
               const SizedBox(height: 14),
@@ -598,7 +854,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w700,
-                  color: const Color(0xFF3861FB),
+                  color: const Color(0xFFCD3131),
                   letterSpacing: -0.2,
                 ),
               ),
@@ -653,7 +909,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 24),
                 _buildOptionTile(
                   icon: Icons.chat_bubble_rounded,
-                  iconColor: const Color(0xFF3861FB),
+                  iconColor: const Color(0xFFCD3131),
                   title: 'Train',
                   subtitle: 'Chat and increase XP',
                   onTap: () {
@@ -805,13 +1061,44 @@ class _HomeScreenState extends State<HomeScreen> {
       child: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
+          if (index == 0) {
+            setState(() {
+              _currentIndex = 0;
+            });
+          } else if (index == 1) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const RegionsScreen()),
+            );
+          } else if (index == 2) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const FavoritesScreen()),
+            );
+          } else if (index == 3) {
+            // Navigate to battle lobby with selected agent
+            final selectedAgent = _agents.isNotEmpty ? _agents.first : null;
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder:
+                    (context) => BattleLobbyScreen(
+                      selectedAgent: selectedAgent,
+                      onAgentChanged: (agent) {
+                        // Handle agent change if needed
+                      },
+                    ),
+              ),
+            );
+          } else if (index == 4) {
+            setState(() {
+              _currentIndex = 1;
+            });
+          }
         },
         type: BottomNavigationBarType.fixed,
         backgroundColor: Colors.white,
-        selectedItemColor: const Color(0xFF3861FB),
+        selectedItemColor: const Color(0xFFCD3131),
         unselectedItemColor: Colors.grey.shade400,
         selectedLabelStyle: GoogleFonts.poppins(
           fontWeight: FontWeight.w700,
@@ -834,6 +1121,10 @@ class _HomeScreenState extends State<HomeScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_rounded, size: 24),
             label: 'Favorites',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.sports_kabaddi, size: 24),
+            label: 'Battle',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_rounded, size: 24),
