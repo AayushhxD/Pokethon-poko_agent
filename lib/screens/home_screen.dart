@@ -13,6 +13,7 @@ import '../services/battle_service.dart';
 import '../services/user_stats_service.dart';
 import '../services/daily_challenge_service.dart';
 import '../widgets/pokeagent_card.dart';
+import '../data/pokemon_data.dart';
 import 'mint_screen.dart';
 import 'train_screen.dart';
 import 'flutter_3d_battle_screen.dart';
@@ -633,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                   // Pokemon Image
                   Center(
                     child: Image.network(
-                      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png',
+                      PokemonData.getPngUrl(pokemonName),
                       height: 70,
                       fit: BoxFit.contain,
                       errorBuilder:
@@ -2073,7 +2074,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     shape: BoxShape.circle,
                   ),
                   child: Image.network(
-                    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/$pokemonId.png',
+                    PokemonData.getPngUrl(pokemonName),
                     height: 150,
                     fit: BoxFit.contain,
                     errorBuilder:

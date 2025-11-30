@@ -821,6 +821,39 @@ class _EvolutionScreenState extends State<EvolutionScreen>
         newStage: newStage,
       );
 
+      // Check if this Pokemon is already at its final evolution stage
+      final newName = evolutionData['newName'] as String? ?? widget.agent.name;
+      if (newName == widget.agent.name) {
+        // Pokemon is already at final stage, refund tokens and show message
+        await walletService.addTokens(WalletService.evolveCost);
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Row(
+              children: [
+                const Icon(Icons.info_outline, color: Colors.white),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    '${widget.agent.name} is already at its final evolution stage!',
+                    style: GoogleFonts.poppins(color: Colors.white),
+                  ),
+                ),
+              ],
+            ),
+            backgroundColor: Colors.blue.shade600,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            duration: const Duration(seconds: 3),
+          ),
+        );
+        return;
+      }
+
       await Future.delayed(const Duration(seconds: 3));
 
       if (!mounted) return;
@@ -835,7 +868,7 @@ class _EvolutionScreenState extends State<EvolutionScreen>
       });
 
       _evolvedAgent = widget.agent.copyWith(
-        name: evolutionData['newName'] as String? ?? widget.agent.name,
+        name: newName,
         evolutionStage: newStage,
         imageUrl:
             evolutionData['newImageUrl'] as String? ?? widget.agent.imageUrl,

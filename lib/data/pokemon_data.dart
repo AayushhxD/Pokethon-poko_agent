@@ -146,6 +146,35 @@ class PokemonData {
     'Roserade': 407,
     'Tangela': 114,
 
+    // Missing evolution Pokemon
+    'Torchic': 255,
+    'Combusken': 256,
+    'Mudkip': 258,
+    'Marshtomp': 259,
+    'Piplup': 393,
+    'Prinplup': 394,
+    'Chimchar': 390,
+    'Monferno': 391,
+    'Grotle': 388,
+    'Riolu': 447,
+    'Gible': 443,
+    'Gabite': 444,
+    'Bagon': 371,
+    'Shelgon': 372,
+    'Beldum': 374,
+    'Metang': 375,
+    'Ralts': 280,
+    'Kirlia': 281,
+    'Feebas': 349,
+    'Slakoth': 287,
+    'Vigoroth': 288,
+    'Houndour': 228,
+    'Larvitar': 246,
+    'Pupitar': 247,
+    'Munchlax': 446,
+    'Dratini': 147,
+    'Dragonair': 148,
+
     // Ice Type
     'Articuno': 144,
     'Glalie': 362,
@@ -1398,25 +1427,76 @@ class PokemonData {
 
   // Pokemon evolution chains
   static const Map<String, List<Map<String, String>>> pokemonEvolutions = {
-    'Charizard': [
-      {'name': 'Charmander', 'level': 'Base'},
-      {'name': 'Charmeleon', 'level': 'Lv. 16'},
-      {'name': 'Charizard', 'level': 'Lv. 36'},
-    ],
-    'Blastoise': [
-      {'name': 'Squirtle', 'level': 'Base'},
-      {'name': 'Wartortle', 'level': 'Lv. 16'},
-      {'name': 'Blastoise', 'level': 'Lv. 36'},
-    ],
-    'Venusaur': [
-      {'name': 'Bulbasaur', 'level': 'Base'},
-      {'name': 'Ivysaur', 'level': 'Lv. 16'},
-      {'name': 'Venusaur', 'level': 'Lv. 32'},
-    ],
     'Pikachu': [
-      {'name': 'Pichu', 'level': 'Baby'},
-      {'name': 'Pikachu', 'level': 'Friendship'},
       {'name': 'Raichu', 'level': 'Thunder Stone'},
+    ],
+    'Torchic': [
+      {'name': 'Combusken', 'level': 'Lv. 16'},
+      {'name': 'Blaziken', 'level': 'Lv. 36'},
+    ],
+    'Mudkip': [
+      {'name': 'Marshtomp', 'level': 'Lv. 16'},
+      {'name': 'Swampert', 'level': 'Lv. 36'},
+    ],
+    'Treecko': [
+      {'name': 'Grovyle', 'level': 'Lv. 16'},
+      {'name': 'Sceptile', 'level': 'Lv. 36'},
+    ],
+    'Piplup': [
+      {'name': 'Prinplup', 'level': 'Lv. 16'},
+      {'name': 'Empoleon', 'level': 'Lv. 36'},
+    ],
+    'Chimchar': [
+      {'name': 'Monferno', 'level': 'Lv. 14'},
+      {'name': 'Infernape', 'level': 'Lv. 36'},
+    ],
+    'Turtwig': [
+      {'name': 'Grotle', 'level': 'Lv. 18'},
+      {'name': 'Torterra', 'level': 'Lv. 32'},
+    ],
+    'Riolu': [
+      {'name': 'Lucario', 'level': 'Friendship (Day)'},
+    ],
+    'Gible': [
+      {'name': 'Gabite', 'level': 'Lv. 24'},
+      {'name': 'Garchomp', 'level': 'Lv. 48'},
+    ],
+    'Bagon': [
+      {'name': 'Shelgon', 'level': 'Lv. 30'},
+      {'name': 'Salamence', 'level': 'Lv. 50'},
+    ],
+    'Beldum': [
+      {'name': 'Metang', 'level': 'Lv. 20'},
+      {'name': 'Metagross', 'level': 'Lv. 45'},
+    ],
+    'Ralts': [
+      {'name': 'Kirlia', 'level': 'Lv. 20'},
+      {'name': 'Gardevoir', 'level': 'Lv. 30'},
+      {'name': 'Gallade', 'level': 'Dawn Stone (Male)'},
+    ],
+    'Feebas': [
+      {'name': 'Milotic', 'level': 'Beauty (Max)'},
+    ],
+    'Slakoth': [
+      {'name': 'Vigoroth', 'level': 'Lv. 18'},
+      {'name': 'Slaking', 'level': 'Lv. 36'},
+    ],
+    'Houndour': [
+      {'name': 'Houndoom', 'level': 'Lv. 24'},
+    ],
+    'Larvitar': [
+      {'name': 'Pupitar', 'level': 'Lv. 30'},
+      {'name': 'Tyranitar', 'level': 'Lv. 55'},
+    ],
+    'Munchlax': [
+      {'name': 'Snorlax', 'level': 'Friendship'},
+    ],
+    'Dratini': [
+      {'name': 'Dragonair', 'level': 'Lv. 30'},
+      {'name': 'Dragonite', 'level': 'Lv. 55'},
+    ],
+    'Mew': [
+      {'name': 'Mewtwo', 'level': 'Special'},
     ],
     // Add more evolutions as needed
   };

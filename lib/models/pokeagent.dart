@@ -76,7 +76,9 @@ class PokeAgent {
   }
 
   bool get canEvolve =>
-      xp >= _getStageXP(evolutionStage + 1) && evolutionStage < 3;
+      xp >= _getStageXP(evolutionStage + 1) &&
+      evolutionStage < 3 &&
+      PokemonData.pokemonEvolutions.containsKey(name);
 
   int _getStageXP(int stage) {
     switch (stage) {
