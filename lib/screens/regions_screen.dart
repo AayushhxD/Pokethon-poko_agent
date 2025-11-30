@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../utils/theme.dart';
-import '../data/pokemon_data.dart';
 import 'explore_screen.dart';
+import 'favorites_screen.dart';
+import 'account_screen.dart';
 
 class RegionsScreen extends StatefulWidget {
   const RegionsScreen({super.key});
@@ -14,124 +14,131 @@ class RegionsScreen extends StatefulWidget {
 }
 
 class _RegionsScreenState extends State<RegionsScreen> {
-  final List<Map<String, dynamic>> regions = const [
+  int _currentIndex = 1; // Regions tab is active
+
+  // Region data with background images and starter Pokemon
+  final List<Map<String, dynamic>> regions = [
     {
       'name': 'Kanto',
       'generation': '1st Generation',
-      'color': Color(0xFF88A2D8),
-      'pokemonSprites': [
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png', // Bulbasaur
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png', // Charmander
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png', // Squirtle
-      ],
+      'pokemonCount': 151,
+      'color': const Color(0xFF6DAA4A),
+      'description': 'The original region where it all began',
+      'backgroundImage': 'assets/images/regions/kanto.png',
+      'starters': [1, 4, 7], // Bulbasaur, Charmander, Squirtle
     },
     {
       'name': 'Johto',
       'generation': '2nd Generation',
-      'color': Color(0xFFD89090),
-      'pokemonSprites': [
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/152.png', // Chikorita
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/155.png', // Cyndaquil
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/158.png', // Totodile
-      ],
+      'pokemonCount': 100,
+      'color': const Color(0xFF8B6DAA),
+      'description': 'A land of tradition and history',
+      'backgroundImage': 'assets/images/regions/johto.png',
+      'starters': [152, 155, 158], // Chikorita, Cyndaquil, Totodile
     },
     {
       'name': 'Hoenn',
       'generation': '3rd Generation',
-      'color': Color(0xFFA8D890),
-      'pokemonSprites': [
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/252.png', // Treecko
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/255.png', // Torchic
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/258.png', // Mudkip
-      ],
+      'pokemonCount': 135,
+      'color': const Color(0xFF4A90D9),
+      'description': 'Islands surrounded by vast oceans',
+      'backgroundImage': 'assets/images/regions/hoenn.png',
+      'starters': [252, 255, 258], // Treecko, Torchic, Mudkip
     },
     {
       'name': 'Sinnoh',
       'generation': '4th Generation',
-      'color': Color(0xFFF5C890),
-      'pokemonSprites': [
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/387.png', // Turtwig
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/390.png', // Chimchar
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/393.png', // Piplup
-      ],
+      'pokemonCount': 107,
+      'color': const Color(0xFF5B7BA6),
+      'description': 'A cold region with ancient myths',
+      'backgroundImage': 'assets/images/regions/sinnoh.png',
+      'starters': [387, 390, 393], // Turtwig, Chimchar, Piplup
     },
     {
       'name': 'Unova',
       'generation': '5th Generation',
-      'color': Color(0xFFB8A8D8),
-      'pokemonSprites': [
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/495.png', // Snivy
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/498.png', // Tepig
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/501.png', // Oshawott
-      ],
+      'pokemonCount': 156,
+      'color': const Color(0xFF6B8E9F),
+      'description': 'A modern metropolis region',
+      'backgroundImage': 'assets/images/regions/unova.png',
+      'starters': [495, 498, 501], // Snivy, Tepig, Oshawott
     },
     {
       'name': 'Kalos',
       'generation': '6th Generation',
-      'color': Color(0xFFE8A8C8),
-      'pokemonSprites': [
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/650.png', // Chespin
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/653.png', // Fennekin
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/656.png', // Froakie
-      ],
+      'pokemonCount': 72,
+      'color': const Color(0xFF9B6B9E),
+      'description': 'Where beauty and fashion thrive',
+      'backgroundImage': 'assets/images/regions/kalos.png',
+      'starters': [650, 653, 656], // Chespin, Fennekin, Froakie
     },
     {
       'name': 'Alola',
       'generation': '7th Generation',
-      'color': Color(0xFFF8D090),
-      'pokemonSprites': [
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/722.png', // Rowlet
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/725.png', // Litten
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/728.png', // Popplio
-      ],
+      'pokemonCount': 88,
+      'color': const Color(0xFFE8A54B),
+      'description': 'Tropical paradise islands',
+      'backgroundImage': 'assets/images/regions/alola.png',
+      'starters': [722, 725, 728], // Rowlet, Litten, Popplio
     },
     {
       'name': 'Galar',
       'generation': '8th Generation',
-      'color': Color(0xFFA8C8E8),
-      'pokemonSprites': [
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/810.png', // Grookey
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/813.png', // Scorbunny
-        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/816.png', // Sobble
-      ],
+      'pokemonCount': 89,
+      'color': const Color(0xFF7B5DAA),
+      'description': 'Industrial revolution meets Pokemon',
+      'backgroundImage': 'assets/images/regions/galar.png',
+      'starters': [810, 813, 816], // Grookey, Scorbunny, Sobble
     },
   ];
+
+  // Get static sprite URL for starter Pokemon
+  String _getSpriteUrl(int id) {
+    return 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/$id.png';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: const Color(0xFFF5F5F5),
       body: SafeArea(
         child: Column(
           children: [_buildHeader(), Expanded(child: _buildRegionsList())],
         ),
       ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
+      bottomNavigationBar: _buildBottomNavBar(),
     );
   }
 
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
+      color: Colors.white,
       child: Row(
         children: [
+          GestureDetector(
+            onTap: () => Navigator.pop(context),
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.arrow_back_ios_new,
+                size: 18,
+                color: Color(0xFF303943),
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
           Text(
             'Regions',
             style: GoogleFonts.poppins(
-              color: const Color(0xFF2E3A59),
-              fontSize: 28,
+              color: const Color(0xFF303943),
+              fontSize: 24,
               fontWeight: FontWeight.w700,
-              letterSpacing: -0.5,
             ),
           ),
         ],
@@ -141,12 +148,13 @@ class _RegionsScreenState extends State<RegionsScreen> {
 
   Widget _buildRegionsList() {
     return ListView.builder(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       itemCount: regions.length,
       itemBuilder: (context, index) {
         final region = regions[index];
         return FadeInUp(
-          delay: Duration(milliseconds: index * 100),
+          delay: Duration(milliseconds: index * 80),
+          duration: const Duration(milliseconds: 400),
           child: _buildRegionCard(region, index),
         );
       },
@@ -154,110 +162,168 @@ class _RegionsScreenState extends State<RegionsScreen> {
   }
 
   Widget _buildRegionCard(Map<String, dynamic> region, int index) {
+    final starters = region['starters'] as List<int>;
     final color = region['color'] as Color;
-    final pokemonSprites = region['pokemonSprites'] as List<String>;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-          colors: [color.withOpacity(0.8), color],
+    return GestureDetector(
+      onTap: () => _navigateToExplore(region),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        height: 100,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.15),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: color.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => _showRegionDetails(region),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                // Left side - Region info
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        region['name'],
-                        style: GoogleFonts.poppins(
-                          color: Colors.white,
-                          fontSize: 24,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: -0.5,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            children: [
+              // Background Image - Full width landscape
+              Positioned.fill(
+                child: Image.asset(
+                  region['backgroundImage'],
+                  fit: BoxFit.cover,
+                  errorBuilder:
+                      (context, error, stackTrace) => Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [color, color.withOpacity(0.7)],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        region['generation'],
-                        style: GoogleFonts.poppins(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
+                ),
+              ),
+              // Gradient overlay for text readability
+              Positioned.fill(
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        Colors.black.withOpacity(0.6),
+                        Colors.black.withOpacity(0.3),
+                        Colors.black.withOpacity(0.1),
+                      ],
+                    ),
                   ),
                 ),
-
-                // Right side - Pokemon sprites
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children:
-                      pokemonSprites.map((spriteUrl) {
-                        return Container(
-                          width: 64,
-                          height: 64,
-                          margin: const EdgeInsets.only(left: 8),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
+              ),
+              // Content
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Left side - Region info
+                    Expanded(
+                      flex: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            region['name'],
+                            style: GoogleFonts.poppins(
+                              color: Colors.white,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w700,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
                           ),
-                          child: CachedNetworkImage(
-                            imageUrl: spriteUrl,
-                            fit: BoxFit.contain,
-                            placeholder:
-                                (context, url) => Center(
-                                  child: SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white.withOpacity(0.5),
+                          const SizedBox(height: 2),
+                          Text(
+                            region['generation'],
+                            style: GoogleFonts.poppins(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              shadows: [
+                                Shadow(
+                                  color: Colors.black.withOpacity(0.5),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Right side - Starter Pokemon sprites
+                    Expanded(
+                      flex: 3,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children:
+                            starters.map((pokemonId) {
+                              return Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.9),
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.15),
+                                        blurRadius: 4,
+                                        offset: const Offset(0, 2),
                                       ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(12),
+                                    child: CachedNetworkImage(
+                                      imageUrl: _getSpriteUrl(pokemonId),
+                                      fit: BoxFit.contain,
+                                      placeholder:
+                                          (context, url) => const SizedBox(),
+                                      errorWidget:
+                                          (context, url, error) => Icon(
+                                            Icons.catching_pokemon,
+                                            color: color,
+                                            size: 28,
+                                          ),
                                     ),
                                   ),
                                 ),
-                            errorWidget:
-                                (context, url, error) => Icon(
-                                  Icons.catching_pokemon,
-                                  color: Colors.white.withOpacity(0.5),
-                                  size: 32,
-                                ),
-                          ),
-                        );
-                      }).toList(),
+                              );
+                            }).toList(),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildBottomNavigationBar() {
+  void _navigateToExplore(Map<String, dynamic> region) async {
+    await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => ExploreScreen(region: region)),
+    );
+    // Trigger a rebuild when returning to refresh any caught Pokemon
+    if (mounted) setState(() {});
+  }
+
+  Widget _buildBottomNavBar() {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -269,344 +335,54 @@ class _RegionsScreenState extends State<RegionsScreen> {
           ),
         ],
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildBottomNavItem(
-                Icons.explore_outlined,
-                'Pokedex',
-                false,
-                () => Navigator.pop(context),
-              ),
-              _buildBottomNavItem(Icons.location_on, 'Regions', true, () {}),
-              _buildBottomNavItem(
-                Icons.favorite_border,
-                'Favorites',
-                false,
-                () => Navigator.pop(context),
-              ),
-              _buildBottomNavItem(
-                Icons.person_outline,
-                'Account',
-                false,
-                () => Navigator.pop(context),
-              ),
-            ],
-          ),
+      child: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          if (index == 0) {
+            Navigator.pop(context);
+          } else if (index == 1) {
+            // Already on Regions
+          } else if (index == 2) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const FavoritesScreen()),
+            );
+          } else if (index == 3) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(builder: (context) => const AccountScreen()),
+            );
+          }
+        },
+        type: BottomNavigationBarType.fixed,
+        backgroundColor: Colors.white,
+        selectedItemColor: const Color(0xFFCD3131),
+        unselectedItemColor: Colors.grey.shade400,
+        selectedLabelStyle: GoogleFonts.poppins(
+          fontWeight: FontWeight.w700,
+          fontSize: 11,
         ),
-      ),
-    );
-  }
-
-  Widget _buildBottomNavItem(
-    IconData icon,
-    String label,
-    bool isActive,
-    VoidCallback onTap,
-  ) {
-    return IconButton(
-      onPressed: onTap,
-      icon: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            icon,
-            color: isActive ? const Color(0xFFCD3131) : Colors.grey.shade400,
-            size: 28,
+        unselectedLabelStyle: GoogleFonts.poppins(
+          fontWeight: FontWeight.w500,
+          fontSize: 11,
+        ),
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.catching_pokemon, size: 24),
+            label: 'Pokedex',
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: isActive ? const Color(0xFFCD3131) : Colors.grey.shade400,
-              fontSize: 11,
-              fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.location_on_rounded, size: 24),
+            label: 'Regions',
           ),
-        ],
-      ),
-      padding: const EdgeInsets.all(8),
-      constraints: const BoxConstraints(minWidth: 60, minHeight: 60),
-    );
-  }
-
-  void _showRegionDetails(Map<String, dynamic> region) {
-    final color = region['color'] as Color;
-    final pokemonSprites = region['pokemonSprites'] as List<String>;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder:
-          (context) => Container(
-            height: MediaQuery.of(context).size.height * 0.75,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(32),
-                topRight: Radius.circular(32),
-              ),
-            ),
-            child: Column(
-              children: [
-                // Handle
-                Container(
-                  margin: const EdgeInsets.only(top: 12),
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.5),
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Region Header
-                        Text(
-                          region['name'],
-                          style: GoogleFonts.poppins(
-                            color: Colors.white,
-                            fontSize: 32,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          region['generation'],
-                          style: GoogleFonts.poppins(
-                            color: Colors.white.withOpacity(0.9),
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-
-                        const SizedBox(height: 32),
-
-                        // Featured Pokemon Section
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Starter Pokémon',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
-                                children:
-                                    pokemonSprites.map((spriteUrl) {
-                                      return Container(
-                                        width: 90,
-                                        height: 90,
-                                        decoration: BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.circular(
-                                            16,
-                                          ),
-                                          boxShadow: [
-                                            BoxShadow(
-                                              color: Colors.black.withOpacity(
-                                                0.1,
-                                              ),
-                                              blurRadius: 10,
-                                              offset: const Offset(0, 4),
-                                            ),
-                                          ],
-                                        ),
-                                        child: CachedNetworkImage(
-                                          imageUrl: spriteUrl,
-                                          fit: BoxFit.contain,
-                                          placeholder:
-                                              (context, url) => Center(
-                                                child: SizedBox(
-                                                  width: 24,
-                                                  height: 24,
-                                                  child: CircularProgressIndicator(
-                                                    strokeWidth: 2,
-                                                    valueColor:
-                                                        AlwaysStoppedAnimation<
-                                                          Color
-                                                        >(color),
-                                                  ),
-                                                ),
-                                              ),
-                                          errorWidget:
-                                              (context, url, error) => Icon(
-                                                Icons.catching_pokemon,
-                                                color: color,
-                                                size: 40,
-                                              ),
-                                        ),
-                                      );
-                                    }).toList(),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Description Section
-                        Container(
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.15),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.3),
-                              width: 1,
-                            ),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'About This Region',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                'The ${region['name']} region is home to many unique Pokémon species. Explore this region to discover and catch them all!',
-                                style: GoogleFonts.poppins(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 14,
-                                  height: 1.6,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 24),
-
-                        // Stats
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                icon: Icons.catching_pokemon,
-                                label: 'Pokémon',
-                                value: '151+',
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                icon: Icons.location_city,
-                                label: 'Cities',
-                                value: '8',
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 32),
-
-                        // Explore Button
-                        SizedBox(
-                          width: double.infinity,
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (context) =>
-                                          ExploreScreen(region: region),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.white,
-                              foregroundColor: color,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                            ),
-                            child: Text(
-                              'Explore ${region['name']}',
-                              style: GoogleFonts.poppins(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.favorite_rounded, size: 24),
+            label: 'Favorites',
           ),
-    );
-  }
-
-  Widget _buildStatCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withOpacity(0.3), width: 1),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: color, size: 32),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: GoogleFonts.poppins(
-              color: color,
-              fontSize: 24,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          Text(
-            label,
-            style: GoogleFonts.poppins(
-              color: color.withOpacity(0.8),
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_rounded, size: 24),
+            label: 'Account',
           ),
         ],
       ),

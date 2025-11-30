@@ -1,0 +1,56 @@
+// Placeholder Unity Library build file
+// This is a stub until you export the actual Unity project
+// To generate the real unityLibrary:
+// 1. Open unity/BattleArena in Unity Editor
+// 2. File → Build Settings → Android
+// 3. Check "Export Project"
+// 4. Export to android/unityLibrary (overwrite this folder)
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'com.unity3d.player'
+    compileSdkVersion 34
+
+    defaultConfig {
+        minSdkVersion 22
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0"
+        
+        ndk {
+            abiFilters 'armeabi-v7a', 'arm64-v8a'
+        }
+    }
+
+    buildTypes {
+        debug {
+            minifyEnabled false
+        }
+        release {
+            minifyEnabled false
+        }
+    }
+
+    sourceSets {
+        main {
+            manifest.srcFile 'AndroidManifest.xml'
+            java.srcDirs = ['src/main/java']
+            res.srcDirs = ['src/main/res']
+            jniLibs.srcDirs = ['libs']
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    lintOptions {
+        abortOnError false
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+}

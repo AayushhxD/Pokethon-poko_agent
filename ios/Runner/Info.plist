@@ -5,7 +5,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Poko Agent</string>
+	<string>PokeAgent</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>poko_agent</string>
+	<string>PokeAgent</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -45,5 +45,11 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>PokeAgent needs camera access to capture photos of your Pokemon adventures and create custom content.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>PokeAgent needs access to your photo library to save and share Pokemon images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>PokeAgent needs permission to save Pokemon photos to your library.</string>
 </dict>
 </plist>

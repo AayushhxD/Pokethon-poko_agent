@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import '../models/pokeagent.dart';
-import '../utils/theme.dart';
 
 class TrainingActivitiesScreen extends StatefulWidget {
   final PokeAgent agent;

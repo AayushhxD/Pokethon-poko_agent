@@ -1,7 +1,7 @@
 name: poko_agent
 description: "PokéAgents - AI-powered Pokémon-inspired NFT agents on Base blockchain"
 publish_to: 'none'
-version: 0.1.0
+version: 1.0.0+1
 
 environment:
   sdk: ^3.7.2
@@ -12,7 +12,7 @@ dependencies:
   provider: ^6.1.2
   dio: ^5.4.3
   web3dart: ^2.7.3
-  walletconnect_flutter_v2: ^2.3.12
+  walletconnect_flutter_v2: ^2.0.14
   lottie: ^3.1.0
   google_fonts: ^6.2.1
   animate_do: ^3.3.4
@@ -31,16 +31,46 @@ dependencies:
   fl_chart: ^0.68.0
   uuid: ^4.4.0
   image_picker: ^1.2.1
+  # Firebase
+  firebase_core: ^3.8.1
+  firebase_auth: ^5.3.4
+  google_sign_in: ^6.2.2
+  # Security
+  flutter_secure_storage: ^9.2.2
+  crypto: ^3.0.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^5.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# App Icon Configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/pokomonlogo.png"
+  min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/images/pokomonlogo.png"
+    background_color: "#1A3A4A"
+    theme_color: "#1A3A4A"
+  windows:
+    generate: true
+    image_path: "assets/images/pokomonlogo.png"
+    icon_size: 256
+  macos:
+    generate: true
+    image_path: "assets/images/pokomonlogo.png"
 
 flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/images/regions/
+    - assets/images/catch/
+    - assets/images/pokomonlogo.png
     - assets/images/onboarding1.png
     - assets/images/onboarding2.png
     - assets/images/login_character.png
@@ -48,6 +78,7 @@ flutter:
     - assets/images/signup_character.png
     - assets/images/Welcome.png
     - assets/images/mint.png
+    - assets/images/battle_background.png
     - assets/animations/
 
 

@@ -14,7 +14,6 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
-  late Animation<double> _rotationAnimation;
 
   @override
   void initState() {
@@ -29,11 +28,6 @@ class _SplashScreenState extends State<SplashScreen>
       end: 1.0,
     ).animate(CurvedAnimation(parent: _controller, curve: Curves.elasticOut));
 
-    _rotationAnimation = Tween<double>(
-      begin: 0.0,
-      end: 2 * 3.14159,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
-
     _controller.forward();
   }
 
@@ -46,72 +40,52 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF000029),
+      backgroundColor: const Color(0xFF1A3A4A),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Spacer(),
 
-            // Animated Pokéball
+            // App Logo
             AnimatedBuilder(
               animation: _controller,
               builder: (context, child) {
                 return Transform.scale(
                   scale: _scaleAnimation.value,
-                  child: Transform.rotate(
-                    angle: _rotationAnimation.value,
-                    child: Container(
-                      width: 200,
-                      height: 200,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.red.shade400,
-                            Colors.red.shade600,
-                            Colors.white,
-                            Colors.white,
-                          ],
-                          stops: const [0.0, 0.45, 0.45, 1.0],
+                  child: Container(
+                    width: 200,
+                    height: 200,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(40),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.3),
+                          blurRadius: 30,
+                          spreadRadius: 5,
                         ),
-                        border: Border.all(color: Colors.black, width: 8),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.red.withOpacity(0.5),
-                            blurRadius: 30,
-                            spreadRadius: 10,
-                          ),
-                        ],
-                      ),
-                      child: Center(
-                        child: Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: Colors.white,
-                            border: Border.all(color: Colors.black, width: 6),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
-                                blurRadius: 10,
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Container(
-                              width: 20,
-                              height: 20,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: Colors.grey,
-                              ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(40),
+                      child: Image.asset(
+                        'assets/images/pokomonlogo.png',
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          // Fallback to icon if image not found
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF1A3A4A),
+                              borderRadius: BorderRadius.circular(40),
+                              border: Border.all(color: Colors.amber, width: 4),
                             ),
-                          ),
-                        ),
+                            child: const Icon(
+                              Icons.catching_pokemon,
+                              size: 120,
+                              color: Colors.amber,
+                            ),
+                          );
+                        },
                       ),
                     ),
                   ),
@@ -125,11 +99,11 @@ class _SplashScreenState extends State<SplashScreen>
             FadeInDown(
               delay: const Duration(milliseconds: 500),
               child: RichText(
-                text: TextSpan(
+                text: const TextSpan(
                   children: [
                     TextSpan(
-                      text: 'Poké',
-                      style: const TextStyle(
+                      text: 'Poke',
+                      style: TextStyle(
                         fontFamily: 'PokemonSolid',
                         fontSize: 52,
                         color: Colors.white,
@@ -144,11 +118,11 @@ class _SplashScreenState extends State<SplashScreen>
                       ),
                     ),
                     TextSpan(
-                      text: 'Agents',
-                      style: const TextStyle(
+                      text: 'Agent',
+                      style: TextStyle(
                         fontFamily: 'PokemonSolid',
                         fontSize: 52,
-                        color: Color(0xFFCD3131),
+                        color: Color(0xFFFFD700),
                         letterSpacing: -1.5,
                         shadows: [
                           Shadow(

@@ -1,3 +1,5 @@
+import '../data/pokemon_data.dart';
+
 class PokeAgent {
   final String id;
   final String name;
@@ -45,6 +47,20 @@ class PokeAgent {
 
   static Map<String, int> _defaultStats(String type) {
     return {'hp': 100, 'attack': 50, 'defense': 50, 'speed': 50, 'special': 50};
+  }
+
+  // Get the correct display image URL - fixes incorrect URLs for Mega forms
+  String get displayImageUrl {
+    // Always try to get the correct URL from PokemonData first
+    final correctedUrl = PokemonData.getPngUrl(name);
+
+    // If we found a correct URL, use it (this handles Mega forms like Mewtwo-X)
+    if (correctedUrl.isNotEmpty) {
+      return correctedUrl;
+    }
+
+    // Fall back to stored imageUrl if PokemonData doesn't have this Pokemon
+    return imageUrl;
   }
 
   int get level => (evolutionStage * 10) + (xp ~/ 100);

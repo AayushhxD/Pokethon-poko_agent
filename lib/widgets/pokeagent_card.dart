@@ -45,7 +45,7 @@ class PokeAgentCard extends StatelessWidget {
                   Expanded(
                     child: Center(
                       child: Hero(
-                        tag: 'agent-${agent.id}',
+                        tag: 'pokeagent-card-${agent.id}',
                         child: Container(
                           width: 120,
                           height: 120,
@@ -53,22 +53,34 @@ class PokeAgentCard extends StatelessWidget {
                             shape: BoxShape.circle,
                             color: typeColor.withOpacity(0.2),
                             border: Border.all(color: typeColor, width: 3),
-                            image:
-                                agent.imageUrl.isNotEmpty
-                                    ? DecorationImage(
-                                      image: NetworkImage(agent.imageUrl),
-                                      fit: BoxFit.cover,
-                                    )
-                                    : null,
                           ),
-                          child:
-                              agent.imageUrl.isEmpty
-                                  ? Icon(
-                                    Icons.catching_pokemon,
-                                    size: 60,
-                                    color: typeColor,
-                                  )
-                                  : null,
+                          child: ClipOval(
+                            child:
+                                agent.displayImageUrl.isNotEmpty
+                                    ? Image.network(
+                                      agent.displayImageUrl,
+                                      key: ValueKey(agent.displayImageUrl),
+                                      fit: BoxFit.cover,
+                                      width: 120,
+                                      height: 120,
+                                      errorBuilder: (
+                                        context,
+                                        error,
+                                        stackTrace,
+                                      ) {
+                                        return Icon(
+                                          Icons.catching_pokemon,
+                                          size: 60,
+                                          color: typeColor,
+                                        );
+                                      },
+                                    )
+                                    : Icon(
+                                      Icons.catching_pokemon,
+                                      size: 60,
+                                      color: typeColor,
+                                    ),
+                          ),
                         ),
                       ),
                     ),

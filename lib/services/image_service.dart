@@ -30,7 +30,6 @@ class ImageService {
 
       return file.path;
     } catch (e) {
-      print('Error downloading image: $e');
       // Return original URL as fallback
       return imageUrl;
     }
@@ -76,7 +75,7 @@ class ImageService {
         await imagesDir.delete(recursive: true);
       }
     } catch (e) {
-      print('Error clearing image cache: $e');
+      // Cache clearing failed
     }
   }
 
@@ -97,7 +96,6 @@ class ImageService {
 
       return totalSize / (1024 * 1024); // Convert to MB
     } catch (e) {
-      print('Error calculating cache size: $e');
       return 0.0;
     }
   }

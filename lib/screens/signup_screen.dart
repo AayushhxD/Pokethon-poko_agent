@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import '../services/firebase_auth_service.dart';
 import 'login_screen.dart';
-import 'home_screen.dart';
+import 'wallet_connect_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   const SignupScreen({super.key});
@@ -20,6 +22,7 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
   bool _isLoading = false;
+  bool _isGoogleLoading = false;
 
   @override
   void dispose() {
@@ -30,27 +33,69 @@ class _SignupScreenState extends State<SignupScreen> {
     super.dispose();
   }
 
+  Future<void> _signUpWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+
+    final authService = Provider.of<FirebaseAuthService>(
+      context,
+      listen: false,
+    );
+    final result = await authService.signInWithGoogle();
+
+    setState(() => _isGoogleLoading = false);
+
+    if (result.success && mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const WalletConnectScreen()),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
   Future<void> _signup() async {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
-    // Simulate signup process
-    await Future.delayed(const Duration(seconds: 2));
-
-    // For demo purposes, accept any valid input
-    if (_nameController.text.isNotEmpty &&
-        _emailController.text.isNotEmpty &&
-        _passwordController.text.isNotEmpty) {
-      // Navigate to home screen
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
-    }
+    final authService = Provider.of<FirebaseAuthService>(
+      context,
+      listen: false,
+    );
+    final result = await authService.signUpWithEmail(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+      displayName: _nameController.text.trim(),
+    );
 
     setState(() => _isLoading = false);
+
+    if (result.success && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const WalletConnectScreen()),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -134,6 +179,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       duration: const Duration(milliseconds: 600),
                       child: TextFormField(
                         controller: _nameController,
+                        style: GoogleFonts.poppins(color: Colors.black),
                         decoration: InputDecoration(
                           labelText: 'Full Name',
                           labelStyle: GoogleFonts.poppins(
@@ -181,6 +227,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       child: TextFormField(
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
+                        style: GoogleFonts.poppins(color: Colors.black),
                         decoration: InputDecoration(
                           labelText: 'Email',
                           labelStyle: GoogleFonts.poppins(
@@ -231,6 +278,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       child: TextFormField(
                         controller: _passwordController,
                         obscureText: !_isPasswordVisible,
+                        style: GoogleFonts.poppins(color: Colors.black),
                         decoration: InputDecoration(
                           labelText: 'Password',
                           labelStyle: GoogleFonts.poppins(
@@ -294,6 +342,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       child: TextFormField(
                         controller: _confirmPasswordController,
                         obscureText: !_isConfirmPasswordVisible,
+                        style: GoogleFonts.poppins(color: Colors.black),
                         decoration: InputDecoration(
                           labelText: 'Confirm Password',
                           labelStyle: GoogleFonts.poppins(
@@ -419,6 +468,54 @@ class _SignupScreenState extends State<SignupScreen> {
                           ),
                         ),
                       ],
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    // Google Sign Up Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _isGoogleLoading ? null : _signUpWithGoogle,
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          side: const BorderSide(
+                            color: Color(0xFFD9D9D9),
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          backgroundColor: Colors.white,
+                        ),
+                        icon:
+                            _isGoogleLoading
+                                ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF3861FB),
+                                    ),
+                                  ),
+                                )
+                                : Image.asset(
+                                  'assets/images/google_icon.png',
+                                  width: 24,
+                                  height: 24,
+                                ),
+                        label: Text(
+                          _isGoogleLoading
+                              ? 'Signing up...'
+                              : 'Continue with Google',
+                          style: GoogleFonts.poppins(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                            color: const Color(0xFF17171B),
+                          ),
+                        ),
+                      ),
                     ),
 
                     const SizedBox(height: 20),

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:math' as math;
 import 'dart:convert';
 import '../models/pokeagent.dart';
-import '../utils/theme.dart';
+import '../models/battle_models.dart';
 import 'train_screen.dart';
+import 'flutter_3d_battle_screen.dart';
 
 class FavoritesScreen extends StatefulWidget {
   const FavoritesScreen({super.key});
@@ -17,10 +19,6 @@ class FavoritesScreen extends StatefulWidget {
 
 class _FavoritesScreenState extends State<FavoritesScreen>
     with AutomaticKeepAliveClientMixin {
-  List<PokeAgent> _favoriteAgents = [];
-  bool _isLoading = true;
-
-  // Pokemon dummy data collection
   List<Map<String, dynamic>> _samplePokemon = [
     {
       'id': '6',
@@ -30,6 +28,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png',
       'backgroundColor': const Color(0xFFFFB366),
+      'isOwned': true,
+      'price': 0.05,
+      'rarity': 'Legendary',
     },
     {
       'id': '3',
@@ -39,6 +40,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png',
       'backgroundColor': const Color(0xFF90C878),
+      'isOwned': true,
+      'price': 0.03,
+      'rarity': 'Rare',
     },
     {
       'id': '151',
@@ -48,6 +52,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/151.png',
       'backgroundColor': const Color(0xFFFF9AB8),
+      'isOwned': false,
+      'price': 0.15,
+      'rarity': 'Mythical',
     },
     {
       'id': '448',
@@ -57,6 +64,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/448.png',
       'backgroundColor': const Color(0xFFD04164),
+      'isOwned': false,
+      'price': 0.04,
+      'rarity': 'Rare',
     },
     {
       'id': '497',
@@ -66,6 +76,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/497.png',
       'backgroundColor': const Color(0xFF90C878),
+      'isOwned': true,
+      'price': 0.025,
+      'rarity': 'Common',
     },
     {
       'id': '25',
@@ -75,6 +88,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
       'backgroundColor': const Color(0xFFF4D03F),
+      'isOwned': true,
+      'price': 0.02,
+      'rarity': 'Common',
     },
     {
       'id': '94',
@@ -84,6 +100,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png',
       'backgroundColor': const Color(0xFF7C538C),
+      'isOwned': false,
+      'price': 0.035,
+      'rarity': 'Rare',
     },
     {
       'id': '130',
@@ -93,6 +112,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/130.png',
       'backgroundColor': const Color(0xFF4A90E2),
+      'isOwned': false,
+      'price': 0.045,
+      'rarity': 'Rare',
     },
     {
       'id': '143',
@@ -102,6 +124,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png',
       'backgroundColor': const Color(0xFF919AA2),
+      'isOwned': true,
+      'price': 0.03,
+      'rarity': 'Rare',
     },
     {
       'id': '248',
@@ -111,6 +136,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/248.png',
       'backgroundColor': const Color(0xFF9C8179),
+      'isOwned': false,
+      'price': 0.06,
+      'rarity': 'Legendary',
     },
     {
       'id': '282',
@@ -120,6 +148,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/282.png',
       'backgroundColor': const Color(0xFFFF9AB8),
+      'isOwned': false,
+      'price': 0.04,
+      'rarity': 'Rare',
     },
     {
       'id': '445',
@@ -129,6 +160,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/445.png',
       'backgroundColor': const Color(0xFF0C69C8),
+      'isOwned': false,
+      'price': 0.08,
+      'rarity': 'Legendary',
     },
     {
       'id': '9',
@@ -138,6 +172,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png',
       'backgroundColor': const Color(0xFF4A90E2),
+      'isOwned': true,
+      'price': 0.035,
+      'rarity': 'Rare',
     },
     {
       'id': '38',
@@ -147,6 +184,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/38.png',
       'backgroundColor': const Color(0xFFFF9C54),
+      'isOwned': false,
+      'price': 0.03,
+      'rarity': 'Rare',
     },
     {
       'id': '658',
@@ -156,8 +196,15 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       'imageUrl':
           'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/658.png',
       'backgroundColor': const Color(0xFF4A90E2),
+      'isOwned': true,
+      'price': 0.04,
+      'rarity': 'Rare',
     },
   ];
+
+  // Wallet balance (simulated - in production this comes from blockchain)
+  double _walletBalance = 0.25; // ETH balance
+  bool _isProcessingPayment = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -165,7 +212,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   @override
   void initState() {
     super.initState();
-    _loadFavoriteAgents();
+    _loadOwnedPokemon();
   }
 
   @override
@@ -173,44 +220,78 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     super.dispose();
   }
 
-  Future<void> _loadFavoriteAgents() async {
+  /// Load owned Pokemon state from SharedPreferences
+  Future<void> _loadOwnedPokemon() async {
     try {
-      // Simulate network delay
-      await Future.delayed(const Duration(milliseconds: 800));
+      final prefs = await SharedPreferences.getInstance();
+      final ownedIds = prefs.getStringList('owned_pokemon_ids') ?? [];
 
+      setState(() {
+        for (var pokemon in _samplePokemon) {
+          if (ownedIds.contains(pokemon['id'].toString())) {
+            pokemon['isOwned'] = true;
+          }
+        }
+      });
+    } catch (e) {
+      debugPrint('Error loading owned Pokemon: $e');
+    }
+  }
+
+  /// Save owned Pokemon ID to SharedPreferences
+  Future<void> _saveOwnedPokemon(String pokemonId) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final ownedIds = prefs.getStringList('owned_pokemon_ids') ?? [];
+
+      if (!ownedIds.contains(pokemonId)) {
+        ownedIds.add(pokemonId);
+        await prefs.setStringList('owned_pokemon_ids', ownedIds);
+      }
+    } catch (e) {
+      debugPrint('Error saving owned Pokemon: $e');
+    }
+  }
+
+  /// Saves unlocked Pokemon to home screen by adding it to SharedPreferences
+  Future<void> _addPokemonToHomeScreen(Map<String, dynamic> pokemon) async {
+    try {
       final prefs = await SharedPreferences.getInstance();
       final agentsJson = prefs.getStringList('agents') ?? [];
 
-      final allAgents =
+      // Create a PokeAgent from the Pokemon data
+      final newAgent = PokeAgent(
+        id: pokemon['id'].toString(),
+        name: pokemon['name'],
+        type: (pokemon['types'] as List<String>).first,
+        imageUrl: pokemon['imageUrl'],
+        xp: (pokemon['level'] as int) * 100,
+        evolutionStage: 1,
+        personality: 'Brave',
+        stats: {
+          'hp': 100,
+          'attack': 50 + (pokemon['level'] as int),
+          'defense': 40 + (pokemon['level'] as int),
+          'speed': 45 + (pokemon['level'] as int),
+          'special': 50 + (pokemon['level'] as int),
+        },
+        isFavorite: true,
+      );
+
+      // Check if this Pokemon already exists
+      final existingAgents =
           agentsJson
               .map((json) => PokeAgent.fromJson(jsonDecode(json)))
               .toList();
 
-      if (mounted) {
-        setState(() {
-          _favoriteAgents =
-              allAgents.where((agent) => agent.isFavorite).toList();
-          _isLoading = false;
-        });
-      }
-    } catch (e) {
-      debugPrint('Error loading favorites: $e');
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
-  }
+      final alreadyExists = existingAgents.any((a) => a.id == newAgent.id);
 
-  Future<void> _saveAgents() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      final agentsJson =
-          _favoriteAgents.map((agent) => jsonEncode(agent.toJson())).toList();
-      await prefs.setStringList('agents', agentsJson);
+      if (!alreadyExists) {
+        agentsJson.add(jsonEncode(newAgent.toJson()));
+        await prefs.setStringList('agents', agentsJson);
+      }
     } catch (e) {
-      debugPrint('Error saving favorites: $e');
+      debugPrint('Error saving Pokemon to home screen: $e');
     }
   }
 
@@ -278,6 +359,14 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   }
 
   void _showPokemonOptions(Map<String, dynamic> pokemon) {
+    final isOwned = pokemon['isOwned'] as bool? ?? true;
+
+    if (!isOwned) {
+      // Show purchase dialog for locked Pokemon
+      _showPurchaseDialog(pokemon);
+      return;
+    }
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -327,10 +416,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
                   subtitle: 'Fight other Pokemon',
                   onTap: () {
                     Navigator.pop(context);
-                    _showSnackBar(
-                      message: 'Battle feature coming soon!',
-                      backgroundColor: Colors.orange,
-                    );
+                    _startBattle(pokemon);
                   },
                 ),
                 _buildOptionTile(
@@ -350,125 +436,1430 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     );
   }
 
-  void _showPokemonInfo(Map<String, dynamic> pokemon) {
+  void _showPurchaseDialog(Map<String, dynamic> pokemon) {
+    final backgroundColor = pokemon['backgroundColor'] as Color;
+    final price = pokemon['price'] as double? ?? 0.0;
+    final rarity = pokemon['rarity'] as String? ?? 'Common';
+    final types = pokemon['types'] as List<String>;
+    final level = pokemon['level'] as int;
+
+    Color rarityColor;
+    IconData rarityIcon;
+    switch (rarity) {
+      case 'Mythical':
+        rarityColor = const Color(0xFFFF69B4);
+        rarityIcon = Icons.auto_awesome;
+        break;
+      case 'Legendary':
+        rarityColor = const Color(0xFFFFD700);
+        rarityIcon = Icons.star;
+        break;
+      case 'Rare':
+        rarityColor = const Color(0xFF9C27B0);
+        rarityIcon = Icons.diamond;
+        break;
+      default:
+        rarityColor = const Color(0xFF4CAF50);
+        rarityIcon = Icons.circle;
+    }
+
     showDialog(
       context: context,
       builder:
+          (context) => StatefulBuilder(
+            builder:
+                (context, setDialogState) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  insetPadding: const EdgeInsets.all(20),
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 380),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(28),
+                      boxShadow: [
+                        BoxShadow(
+                          color: backgroundColor.withOpacity(0.3),
+                          blurRadius: 30,
+                          spreadRadius: 5,
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Header with Pokemon showcase
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(24, 24, 24, 20),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                backgroundColor.withOpacity(0.9),
+                                backgroundColor,
+                                backgroundColor.withOpacity(0.8),
+                              ],
+                            ),
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(28),
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              // NFT Badge
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.black.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.verified,
+                                          color: Colors.white,
+                                          size: 14,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'NFT',
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            letterSpacing: 1,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  GestureDetector(
+                                    onTap: () => Navigator.pop(context),
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white.withOpacity(0.2),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: const Icon(
+                                        Icons.close,
+                                        color: Colors.white,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Pokemon Image with effects
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  // Glow effect
+                                  Container(
+                                    width: 140,
+                                    height: 140,
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: Colors.white.withOpacity(0.3),
+                                          blurRadius: 40,
+                                          spreadRadius: 10,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  // Background circle
+                                  Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.25),
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                  // Pokemon image
+                                  CachedNetworkImage(
+                                    imageUrl: pokemon['imageUrl'],
+                                    width: 110,
+                                    height: 110,
+                                    fit: BoxFit.contain,
+                                  ),
+                                  // Lock badge
+                                  Positioned(
+                                    bottom: 0,
+                                    right: 0,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        shape: BoxShape.circle,
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withOpacity(
+                                              0.15,
+                                            ),
+                                            blurRadius: 8,
+                                          ),
+                                        ],
+                                      ),
+                                      child: Icon(
+                                        Icons.lock,
+                                        color: backgroundColor,
+                                        size: 18,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 16),
+
+                              // Pokemon name
+                              Text(
+                                pokemon['name'],
+                                style: GoogleFonts.poppins(
+                                  color: Colors.white,
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -0.5,
+                                ),
+                              ),
+
+                              const SizedBox(height: 8),
+
+                              // Level and Rarity
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.white.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      'Lv. $level',
+                                      style: GoogleFonts.poppins(
+                                        color: Colors.white,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: rarityColor.withOpacity(0.3),
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.3),
+                                      ),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          rarityIcon,
+                                          color: Colors.white,
+                                          size: 12,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          rarity,
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+
+                              const SizedBox(height: 10),
+
+                              // Type badges
+                              Wrap(
+                                spacing: 6,
+                                children:
+                                    types.map((type) {
+                                      return Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Icon(
+                                              _getTypeIcon(type),
+                                              color: Colors.white,
+                                              size: 12,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              type,
+                                              style: GoogleFonts.poppins(
+                                                color: Colors.white,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w500,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    }).toList(),
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Payment Section
+                        Padding(
+                          padding: const EdgeInsets.all(24),
+                          child: Column(
+                            children: [
+                              // Price Card
+                              Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      const Color(0xFF667eea).withOpacity(0.1),
+                                      const Color(0xFF764ba2).withOpacity(0.05),
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: const Color(
+                                      0xFF667eea,
+                                    ).withOpacity(0.2),
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    // NFT Price
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Container(
+                                              padding: const EdgeInsets.all(8),
+                                              decoration: BoxDecoration(
+                                                color: const Color(
+                                                  0xFF627EEA,
+                                                ).withOpacity(0.1),
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                              child: Image.network(
+                                                'https://cryptologos.cc/logos/ethereum-eth-logo.png',
+                                                width: 20,
+                                                height: 20,
+                                                errorBuilder:
+                                                    (_, __, ___) => const Text(
+                                                      'Ξ',
+                                                      style: TextStyle(
+                                                        color: Color(
+                                                          0xFF627EEA,
+                                                        ),
+                                                        fontSize: 16,
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  'Price',
+                                                  style: GoogleFonts.poppins(
+                                                    color: Colors.grey.shade500,
+                                                    fontSize: 12,
+                                                  ),
+                                                ),
+                                                Text(
+                                                  '${price.toStringAsFixed(3)} ETH',
+                                                  style: GoogleFonts.poppins(
+                                                    color: Colors.black,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w800,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ],
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: rarityColor.withOpacity(
+                                              0.15,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              20,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            rarity,
+                                            style: GoogleFonts.poppins(
+                                              color: rarityColor,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    const SizedBox(height: 16),
+
+                                    // Divider with "Your Wallet"
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Container(
+                                            height: 1,
+                                            color: Colors.grey.shade200,
+                                          ),
+                                        ),
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                          ),
+                                          child: Text(
+                                            'Your Wallet',
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.grey.shade400,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        Expanded(
+                                          child: Container(
+                                            height: 1,
+                                            color: Colors.grey.shade200,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+
+                                    const SizedBox(height: 16),
+
+                                    // Balance
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          'Balance',
+                                          style: GoogleFonts.poppins(
+                                            color: Colors.grey.shade600,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Container(
+                                              width: 10,
+                                              height: 10,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    _walletBalance >= price
+                                                        ? const Color(
+                                                          0xFF4CAF50,
+                                                        )
+                                                        : const Color(
+                                                          0xFFE53935,
+                                                        ),
+                                                shape: BoxShape.circle,
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: (_walletBalance >=
+                                                                price
+                                                            ? const Color(
+                                                              0xFF4CAF50,
+                                                            )
+                                                            : const Color(
+                                                              0xFFE53935,
+                                                            ))
+                                                        .withOpacity(0.4),
+                                                    blurRadius: 6,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            const SizedBox(width: 10),
+                                            Text(
+                                              '${_walletBalance.toStringAsFixed(3)} ETH',
+                                              style: GoogleFonts.poppins(
+                                                color:
+                                                    _walletBalance >= price
+                                                        ? const Color(
+                                                          0xFF4CAF50,
+                                                        )
+                                                        : const Color(
+                                                          0xFFE53935,
+                                                        ),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+
+                                    // After purchase balance
+                                    if (_walletBalance >= price) ...[
+                                      const SizedBox(height: 8),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'After Purchase',
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.grey.shade400,
+                                              fontSize: 12,
+                                            ),
+                                          ),
+                                          Text(
+                                            '${(_walletBalance - price).toStringAsFixed(3)} ETH',
+                                            style: GoogleFonts.poppins(
+                                              color: Colors.grey.shade500,
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+
+                              // Warning for insufficient balance
+                              if (_walletBalance < price) ...[
+                                const SizedBox(height: 16),
+                                Container(
+                                  padding: const EdgeInsets.all(14),
+                                  decoration: BoxDecoration(
+                                    color: const Color(
+                                      0xFFE53935,
+                                    ).withOpacity(0.08),
+                                    borderRadius: BorderRadius.circular(14),
+                                    border: Border.all(
+                                      color: const Color(
+                                        0xFFE53935,
+                                      ).withOpacity(0.2),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: const Color(
+                                            0xFFE53935,
+                                          ).withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                        ),
+                                        child: const Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: Color(0xFFE53935),
+                                          size: 18,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Insufficient Balance',
+                                              style: GoogleFonts.poppins(
+                                                color: const Color(0xFFE53935),
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                            Text(
+                                              'Need ${(price - _walletBalance).toStringAsFixed(3)} more ETH',
+                                              style: GoogleFonts.poppins(
+                                                color: const Color(
+                                                  0xFFE53935,
+                                                ).withOpacity(0.7),
+                                                fontSize: 11,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+
+                              const SizedBox(height: 20),
+
+                              // Purchase Button
+                              SizedBox(
+                                width: double.infinity,
+                                height: 56,
+                                child: ElevatedButton(
+                                  onPressed:
+                                      _isProcessingPayment ||
+                                              _walletBalance < price
+                                          ? null
+                                          : () async {
+                                            setDialogState(
+                                              () => _isProcessingPayment = true,
+                                            );
+
+                                            await Future.delayed(
+                                              const Duration(seconds: 2),
+                                            );
+
+                                            setState(() {
+                                              _walletBalance -= price;
+                                              final index = _samplePokemon
+                                                  .indexWhere(
+                                                    (p) =>
+                                                        p['id'] ==
+                                                        pokemon['id'],
+                                                  );
+                                              if (index != -1) {
+                                                _samplePokemon[index]['isOwned'] =
+                                                    true;
+                                              }
+                                              _isProcessingPayment = false;
+                                            });
+
+                                            await _saveOwnedPokemon(
+                                              pokemon['id'].toString(),
+                                            );
+                                            await _addPokemonToHomeScreen(
+                                              pokemon,
+                                            );
+
+                                            Navigator.pop(context);
+                                            _showPurchaseSuccessDialog(pokemon);
+                                          },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor:
+                                        _walletBalance >= price
+                                            ? backgroundColor
+                                            : Colors.grey.shade300,
+                                    foregroundColor: Colors.white,
+                                    elevation: _walletBalance >= price ? 4 : 0,
+                                    shadowColor: backgroundColor.withOpacity(
+                                      0.4,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                  ),
+                                  child:
+                                      _isProcessingPayment
+                                          ? Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              const SizedBox(
+                                                width: 22,
+                                                height: 22,
+                                                child:
+                                                    CircularProgressIndicator(
+                                                      color: Colors.white,
+                                                      strokeWidth: 2.5,
+                                                    ),
+                                              ),
+                                              const SizedBox(width: 14),
+                                              Text(
+                                                'Processing Transaction...',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          )
+                                          : Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                _walletBalance >= price
+                                                    ? Icons.lock_open_rounded
+                                                    : Icons.lock,
+                                                size: 20,
+                                              ),
+                                              const SizedBox(width: 10),
+                                              Text(
+                                                _walletBalance >= price
+                                                    ? 'Unlock for ${price.toStringAsFixed(3)} ETH'
+                                                    : 'Insufficient Balance',
+                                                style: GoogleFonts.poppins(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                ),
+                              ),
+
+                              const SizedBox(height: 12),
+
+                              // Secure transaction note
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.verified_user,
+                                    color: Colors.grey.shade400,
+                                    size: 14,
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    'Secure blockchain transaction',
+                                    style: GoogleFonts.poppins(
+                                      color: Colors.grey.shade400,
+                                      fontSize: 11,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+          ),
+    );
+  }
+
+  void _showPurchaseSuccessDialog(Map<String, dynamic> pokemon) {
+    final backgroundColor = pokemon['backgroundColor'] as Color;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (context) => AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            contentPadding: const EdgeInsets.all(24),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Success icon
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4CAF50).withOpacity(0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF4CAF50),
+                    size: 48,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  'NFT Unlocked!',
+                  style: GoogleFonts.poppins(
+                    color: Colors.black,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${pokemon['name']} is now yours!',
+                  style: GoogleFonts.poppins(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Pokemon image
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: backgroundColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: CachedNetworkImage(
+                    imageUrl: pokemon['imageUrl'],
+                    width: 100,
+                    height: 100,
+                    fit: BoxFit.contain,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                // Transaction hash
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: Colors.grey.shade200),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.receipt_long,
+                        color: Colors.grey.shade500,
+                        size: 16,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'TX: 0x${pokemon['id'].hashCode.toRadixString(16).padLeft(8, '0')}...',
+                        style: GoogleFonts.robotoMono(
+                          color: Colors.grey.shade600,
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 24),
+                // Continue button
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'Awesome!',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+    );
+  }
+
+  void _showPokemonInfo(Map<String, dynamic> pokemon) {
+    final backgroundColor = pokemon['backgroundColor'] as Color;
+    final types = pokemon['types'] as List<String>;
+    final level = pokemon['level'] as int;
+
+    // Generate random stats based on level
+    final random = math.Random(pokemon['id'].hashCode);
+    final hp = 50 + level + random.nextInt(50);
+    final attack = 40 + (level * 0.8).toInt() + random.nextInt(30);
+    final defense = 35 + (level * 0.6).toInt() + random.nextInt(25);
+    final speed = 45 + (level * 0.7).toInt() + random.nextInt(35);
+    final specialAtk = 40 + (level * 0.75).toInt() + random.nextInt(30);
+    final specialDef = 35 + (level * 0.65).toInt() + random.nextInt(25);
+
+    showDialog(
+      context: context,
+      barrierColor: Colors.black.withOpacity(0.7),
+      builder:
           (context) => Dialog(
             backgroundColor: Colors.transparent,
+            insetPadding: const EdgeInsets.all(20),
             child: Container(
-              padding: const EdgeInsets.all(24),
+              constraints: const BoxConstraints(maxWidth: 400),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    backgroundColor.withOpacity(0.9),
+                    backgroundColor.withOpacity(0.7),
+                    const Color(0xFF1A1A2E),
+                  ],
+                  stops: const [0.0, 0.3, 1.0],
+                ),
+                borderRadius: BorderRadius.circular(28),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: backgroundColor.withOpacity(0.5),
+                    blurRadius: 30,
+                    spreadRadius: 5,
+                  ),
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
                 ],
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 120,
-                    height: 120,
-                    decoration: BoxDecoration(
-                      color: pokemon['backgroundColor'].withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: CachedNetworkImage(
-                      imageUrl: pokemon['imageUrl'],
-                      placeholder:
-                          (context, url) => const CircularProgressIndicator(),
-                      errorWidget:
-                          (context, url, error) => const Icon(Icons.error),
-                      fit: BoxFit.contain,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    pokemon['name'],
-                    style: GoogleFonts.poppins(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.black,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: pokemon['backgroundColor'],
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      'Level ${pokemon['level']}',
-                      style: GoogleFonts.poppins(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children:
-                        (pokemon['types'] as List<String>).map((type) {
-                          return Container(
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Header with Pokemon Image
+                    Stack(
+                      clipBehavior: Clip.none,
+                      children: [
+                        // Background pattern
+                        Container(
+                          height: 180,
+                          decoration: BoxDecoration(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(28),
+                            ),
+                            gradient: RadialGradient(
+                              center: Alignment.center,
+                              radius: 1.0,
+                              colors: [
+                                Colors.white.withOpacity(0.2),
+                                Colors.transparent,
+                              ],
+                            ),
+                          ),
+                        ),
+                        // Close button
+                        Positioned(
+                          top: 12,
+                          right: 12,
+                          child: GestureDetector(
+                            onTap: () => Navigator.pop(context),
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.3),
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(
+                                Icons.close,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                        ),
+                        // Pokemon number
+                        Positioned(
+                          top: 16,
+                          left: 20,
+                          child: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12,
                               vertical: 6,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: Colors.grey.shade300),
+                              color: Colors.black.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             child: Text(
-                              type,
+                              '#${pokemon['id'].toString().padLeft(3, '0')}',
                               style: GoogleFonts.poppins(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                          );
-                        }).toList(),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFCD3131),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 12,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        // Pokemon Image - centered
+                        Positioned(
+                          top: 20,
+                          left: 0,
+                          right: 0,
+                          child: Hero(
+                            tag: 'pokemon-detail-dialog-${pokemon['id']}',
+                            child: Container(
+                              height: 150,
+                              child: CachedNetworkImage(
+                                imageUrl: pokemon['imageUrl'],
+                                fit: BoxFit.contain,
+                                placeholder:
+                                    (context, url) => const Center(
+                                      child: CircularProgressIndicator(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                errorWidget:
+                                    (context, url, error) => Icon(
+                                      Icons.catching_pokemon,
+                                      size: 80,
+                                      color: Colors.white.withOpacity(0.5),
+                                    ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+
+                    // Pokemon Info Section
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+                      child: Column(
+                        children: [
+                          // Name and Level
+                          Text(
+                            pokemon['name'],
+                            style: GoogleFonts.poppins(
+                              fontSize: 28,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 6,
+                            ),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  const Color(0xFFFFD700),
+                                  const Color(0xFFFFA500),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: const Color(
+                                    0xFFFFD700,
+                                  ).withOpacity(0.4),
+                                  blurRadius: 10,
+                                  spreadRadius: 1,
+                                ),
+                              ],
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Level $level',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Type badges
+                          Wrap(
+                            spacing: 10,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.center,
+                            children:
+                                types.map((type) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      vertical: 8,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _getTypeColor(type),
+                                      borderRadius: BorderRadius.circular(20),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: _getTypeColor(
+                                            type,
+                                          ).withOpacity(0.5),
+                                          blurRadius: 8,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          _getTypeIcon(type),
+                                          color: Colors.white,
+                                          size: 16,
+                                        ),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          type,
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                }).toList(),
+                          ),
+
+                          const SizedBox(height: 24),
+
+                          // Stats Section
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: Colors.black.withOpacity(0.3),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.1),
+                              ),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'BASE STATS',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                    color: Colors.white.withOpacity(0.7),
+                                    letterSpacing: 2,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                _buildStatBar(
+                                  'HP',
+                                  hp,
+                                  200,
+                                  const Color(0xFF4CAF50),
+                                ),
+                                _buildStatBar(
+                                  'Attack',
+                                  attack,
+                                  150,
+                                  const Color(0xFFFF5722),
+                                ),
+                                _buildStatBar(
+                                  'Defense',
+                                  defense,
+                                  150,
+                                  const Color(0xFF2196F3),
+                                ),
+                                _buildStatBar(
+                                  'Sp. Atk',
+                                  specialAtk,
+                                  150,
+                                  const Color(0xFF9C27B0),
+                                ),
+                                _buildStatBar(
+                                  'Sp. Def',
+                                  specialDef,
+                                  150,
+                                  const Color(0xFF00BCD4),
+                                ),
+                                _buildStatBar(
+                                  'Speed',
+                                  speed,
+                                  150,
+                                  const Color(0xFFFFEB3B),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          const SizedBox(height: 20),
+
+                          // Action Buttons
+                          Row(
+                            children: [
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    _startBattle(pokemon);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFFFF6B35),
+                                          Color(0xFFFF4444),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFFFF6B35,
+                                          ).withOpacity(0.4),
+                                          blurRadius: 12,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.sports_kabaddi,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Battle',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: GestureDetector(
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    _showPokemonDetails(pokemon);
+                                  },
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 14,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFF7C4DFF),
+                                          Color(0xFF536DFE),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(
+                                            0xFF7C4DFF,
+                                          ).withOpacity(0.4),
+                                          blurRadius: 12,
+                                          spreadRadius: 1,
+                                        ),
+                                      ],
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        const Icon(
+                                          Icons.fitness_center,
+                                          color: Colors.white,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'Train',
+                                          style: GoogleFonts.poppins(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w700,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    child: Text(
-                      'Close',
-                      style: GoogleFonts.poppins(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
+    );
+  }
+
+  Widget _buildStatBar(String label, int value, int maxValue, Color color) {
+    final percentage = (value / maxValue).clamp(0.0, 1.0);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 60,
+            child: Text(
+              label,
+              style: GoogleFonts.poppins(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: Colors.white.withOpacity(0.8),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 35,
+            child: Text(
+              '$value',
+              style: GoogleFonts.poppins(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+              textAlign: TextAlign.right,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Stack(
+              children: [
+                Container(
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                ),
+                FractionallySizedBox(
+                  widthFactor: percentage,
+                  child: Container(
+                    height: 8,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [color, color.withOpacity(0.7)],
+                      ),
+                      borderRadius: BorderRadius.circular(4),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withOpacity(0.5),
+                          blurRadius: 6,
+                          spreadRadius: 0,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startBattle(Map<String, dynamic> pokemon) {
+    // Create player's PokeAgent
+    final playerLevel = pokemon['level'] as int;
+    final myAgent = PokeAgent(
+      id: pokemon['id'],
+      name: pokemon['name'],
+      type: (pokemon['types'] as List<String>).first.toLowerCase(),
+      imageUrl: pokemon['imageUrl'],
+      xp: playerLevel * 100,
+      evolutionStage: 1,
+      personality: 'Brave',
+      stats: {
+        'hp': 100,
+        'attack': 50 + playerLevel,
+        'defense': 40 + playerLevel,
+        'speed': 45 + playerLevel,
+      },
+    );
+
+    // Generate a random opponent from the sample Pokemon
+    final random = math.Random();
+    final opponents =
+        _samplePokemon.where((p) => p['id'] != pokemon['id']).toList();
+    final opponentData = opponents[random.nextInt(opponents.length)];
+    final opponentLevel = opponentData['level'] as int;
+
+    final opponentAgent = BattleAgent(
+      tokenId: opponentData['id'].hashCode.abs(),
+      name: opponentData['name'],
+      imageUrl: opponentData['imageUrl'],
+      level: opponentLevel,
+      elementType: (opponentData['types'] as List<String>).first.toLowerCase(),
+      hp: 100,
+      attack: 50 + opponentLevel,
+      defense: 40 + opponentLevel,
+      speed: 45 + opponentLevel,
+    );
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (context) => Flutter3DBattleScreen(
+              myAgent: myAgent,
+              opponentAgent: opponentAgent,
+              battleId: DateTime.now().millisecondsSinceEpoch,
+            ),
+      ),
     );
   }
 
@@ -535,6 +1926,29 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     );
   }
 
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F4F8),
+      body: SafeArea(
+        child: Column(
+          children: [
+            _buildHeader(),
+            Expanded(
+              child:
+                  _samplePokemon.isEmpty
+                      ? _buildEmptyState()
+                      : _buildFavoritesList(),
+            ),
+          ],
+        ),
+      ),
+      bottomNavigationBar: _buildBottomNavigationBar(),
+    );
+  }
+
   void _showPokemonDetails(Map<String, dynamic> pokemon) {
     // Create a dummy PokeAgent from Pokemon data for training
     final dummyAgent = PokeAgent(
@@ -566,31 +1980,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
               },
             ),
       ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    super.build(context);
-
-    return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            Expanded(
-              child:
-                  _isLoading
-                      ? _buildLoadingState()
-                      : _samplePokemon.isEmpty
-                      ? _buildEmptyState()
-                      : _buildFavoritesList(),
-            ),
-          ],
-        ),
-      ),
-      bottomNavigationBar: _buildBottomNavigationBar(),
     );
   }
 
@@ -657,27 +2046,6 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     );
   }
 
-  Widget _buildLoadingState() {
-    return Center(
-      child: FadeIn(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const CircularProgressIndicator(
-              color: Color(0xFFCD3131),
-              strokeWidth: 3,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Loading favorites...',
-              style: GoogleFonts.poppins(color: Colors.black54, fontSize: 14),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildFavoritesList() {
     return ListView.builder(
       padding: const EdgeInsets.all(16),
@@ -698,19 +2066,35 @@ class _FavoritesScreenState extends State<FavoritesScreen>
   Widget _buildPokemonCard(Map<String, dynamic> pokemon, int index) {
     final backgroundColor = pokemon['backgroundColor'] as Color;
     final types = pokemon['types'] as List<String>;
+    final isOwned = pokemon['isOwned'] as bool? ?? true;
+    final price = pokemon['price'] as double? ?? 0.0;
+    final rarity = pokemon['rarity'] as String? ?? 'Common';
+
+    Color rarityColor;
+    switch (rarity) {
+      case 'Mythical':
+        rarityColor = const Color(0xFFFF69B4);
+        break;
+      case 'Legendary':
+        rarityColor = const Color(0xFFFFD700);
+        break;
+      case 'Rare':
+        rarityColor = const Color(0xFF9C27B0);
+        break;
+      default:
+        rarityColor = const Color(0xFF4CAF50);
+    }
 
     return Dismissible(
       key: Key(
         'dismissible-${pokemon['id']}-$index-${DateTime.now().millisecondsSinceEpoch}',
       ),
-      direction: DismissDirection.endToStart,
+      direction: isOwned ? DismissDirection.endToStart : DismissDirection.none,
       background: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFFCD3131), Color(0xFFFF6B6B)],
-          ),
-          borderRadius: BorderRadius.circular(20),
+          color: const Color(0xFFE53935),
+          borderRadius: BorderRadius.circular(16),
         ),
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
@@ -718,9 +2102,9 @@ class _FavoritesScreenState extends State<FavoritesScreen>
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Icon(
-              Icons.delete_sweep_rounded,
+              Icons.delete_outline_rounded,
               color: Colors.white,
-              size: 32,
+              size: 28,
             ),
             const SizedBox(height: 4),
             Text(
@@ -728,7 +2112,7 @@ class _FavoritesScreenState extends State<FavoritesScreen>
               style: GoogleFonts.poppins(
                 color: Colors.white,
                 fontSize: 12,
-                fontWeight: FontWeight.w600,
+                fontWeight: FontWeight.w500,
               ),
             ),
           ],
@@ -739,137 +2123,315 @@ class _FavoritesScreenState extends State<FavoritesScreen>
       child: Container(
         margin: const EdgeInsets.only(bottom: 12),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [backgroundColor.withOpacity(0.7), backgroundColor],
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isOwned ? Colors.grey.shade200 : Colors.grey.shade300,
+            width: 1,
           ),
-          borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: backgroundColor.withOpacity(0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(20),
-            onTap: () => _showPokemonOptions(pokemon),
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  _buildPokemonImage(pokemon),
-                  const SizedBox(width: 16),
-                  Expanded(child: _buildPokemonInfo(pokemon, types)),
-                  _buildFavoriteIcon(),
-                ],
+        child: Stack(
+          children: [
+            // Main content
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(16),
+                onTap: () => _showPokemonOptions(pokemon),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    children: [
+                      _buildPokemonImage(pokemon, isOwned, backgroundColor),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: _buildPokemonInfo(pokemon, types, isOwned),
+                      ),
+                      isOwned
+                          ? _buildFavoriteIcon(backgroundColor)
+                          : _buildLockIcon(price, rarityColor),
+                    ],
+                  ),
+                ),
               ),
+            ),
+            // Lock/Rarity badge for non-owned
+            if (!isOwned)
+              Positioned(
+                top: 8,
+                right: 8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: rarityColor.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: rarityColor.withOpacity(0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        rarity == 'Mythical'
+                            ? Icons.auto_awesome
+                            : rarity == 'Legendary'
+                            ? Icons.star
+                            : rarity == 'Rare'
+                            ? Icons.diamond
+                            : Icons.circle,
+                        color: rarityColor,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        rarity,
+                        style: GoogleFonts.poppins(
+                          color: rarityColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLockIcon(double price, Color rarityColor) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            shape: BoxShape.circle,
+          ),
+          child: Icon(Icons.lock, color: Colors.grey.shade500, size: 20),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: const Color(0xFF3861FB).withOpacity(0.1),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            '${price.toStringAsFixed(2)} ETH',
+            style: GoogleFonts.poppins(
+              color: const Color(0xFF3861FB),
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),
-      ),
+      ],
     );
   }
 
-  Widget _buildPokemonImage(Map<String, dynamic> pokemon) {
+  Widget _buildPokemonImage(
+    Map<String, dynamic> pokemon,
+    bool isOwned,
+    Color backgroundColor,
+  ) {
     return Hero(
-      tag: 'pokemon-${pokemon['id']}',
+      tag: 'pokemon-fav-card-${pokemon['id']}',
       child: Container(
-        width: 80,
-        height: 80,
+        width: 70,
+        height: 70,
         decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.3),
-          shape: BoxShape.circle,
+          color:
+              isOwned
+                  ? backgroundColor.withOpacity(0.15)
+                  : Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(14),
         ),
-        child: ClipOval(
-          child: CachedNetworkImage(
-            imageUrl: pokemon['imageUrl'],
-            fit: BoxFit.contain,
-            placeholder:
-                (context, url) => Center(
-                  child: SizedBox(
-                    width: 30,
-                    height: 30,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        Colors.white.withOpacity(0.5),
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child:
+                  isOwned
+                      ? CachedNetworkImage(
+                        imageUrl: pokemon['imageUrl'],
+                        width: 60,
+                        height: 60,
+                        fit: BoxFit.contain,
+                        placeholder:
+                            (context, url) => Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    backgroundColor.withOpacity(0.5),
+                                  ),
+                                ),
+                              ),
+                            ),
+                        errorWidget:
+                            (context, url, error) => Icon(
+                              Icons.catching_pokemon,
+                              color: Colors.grey.shade400,
+                              size: 32,
+                            ),
+                      )
+                      : ColorFiltered(
+                        colorFilter: const ColorFilter.matrix(<double>[
+                          0.33,
+                          0.33,
+                          0.33,
+                          0,
+                          0,
+                          0.33,
+                          0.33,
+                          0.33,
+                          0,
+                          0,
+                          0.33,
+                          0.33,
+                          0.33,
+                          0,
+                          0,
+                          0,
+                          0,
+                          0,
+                          0.7,
+                          0,
+                        ]),
+                        child: CachedNetworkImage(
+                          imageUrl: pokemon['imageUrl'],
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.contain,
+                          placeholder:
+                              (context, url) => Center(
+                                child: SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.grey.shade400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          errorWidget:
+                              (context, url, error) => Icon(
+                                Icons.catching_pokemon,
+                                color: Colors.grey.shade400,
+                                size: 32,
+                              ),
+                        ),
                       ),
-                    ),
+            ),
+            // Small lock icon for locked Pokemon
+            if (!isOwned)
+              Positioned(
+                bottom: 2,
+                right: 2,
+                child: Container(
+                  padding: const EdgeInsets.all(3),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 4,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.lock,
+                    color: Colors.grey.shade500,
+                    size: 12,
                   ),
                 ),
-            errorWidget:
-                (context, url, error) => Icon(
-                  Icons.catching_pokemon,
-                  color: Colors.white.withOpacity(0.5),
-                  size: 40,
-                ),
-          ),
+              ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildPokemonInfo(Map<String, dynamic> pokemon, List<String> types) {
+  Widget _buildPokemonInfo(
+    Map<String, dynamic> pokemon,
+    List<String> types,
+    bool isOwned,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           '#${pokemon['id'].toString().padLeft(3, '0')}',
           style: GoogleFonts.poppins(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+            color: Colors.grey.shade500,
+            fontSize: 11,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 2),
         Text(
           pokemon['name'],
           style: GoogleFonts.poppins(
-            color: Colors.white,
-            fontSize: 20,
-            fontWeight: FontWeight.w700,
-            letterSpacing: -0.5,
+            color: isOwned ? Colors.black : Colors.grey.shade600,
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 6),
         Wrap(
-          spacing: 8,
+          spacing: 6,
           runSpacing: 4,
-          children: types.map((type) => _buildTypeBadge(type)).toList(),
+          children:
+              types.map((type) => _buildTypeBadge(type, isOwned)).toList(),
         ),
       ],
     );
   }
 
-  Widget _buildTypeBadge(String type) {
+  Widget _buildTypeBadge(String type, [bool isOwned = true]) {
+    final typeColor = _getTypeColor(type);
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: _getTypeColor(type),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: isOwned ? typeColor.withOpacity(0.15) : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: isOwned ? typeColor.withOpacity(0.3) : Colors.grey.shade300,
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(_getTypeIcon(type), color: Colors.white, size: 14),
+          Icon(
+            _getTypeIcon(type),
+            color: isOwned ? typeColor : Colors.grey.shade500,
+            size: 12,
+          ),
           const SizedBox(width: 4),
           Text(
             type,
             style: GoogleFonts.poppins(
-              color: Colors.white,
-              fontSize: 11,
+              color: isOwned ? typeColor : Colors.grey.shade500,
+              fontSize: 10,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -878,14 +2440,14 @@ class _FavoritesScreenState extends State<FavoritesScreen>
     );
   }
 
-  Widget _buildFavoriteIcon() {
+  Widget _buildFavoriteIcon(Color backgroundColor) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.2),
+        color: backgroundColor.withOpacity(0.1),
         shape: BoxShape.circle,
       ),
-      child: const Icon(Icons.favorite, color: Colors.white, size: 24),
+      child: Icon(Icons.favorite, color: backgroundColor, size: 22),
     );
   }
 

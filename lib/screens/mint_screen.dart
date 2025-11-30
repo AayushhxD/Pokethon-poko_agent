@@ -9,6 +9,7 @@ import '../utils/theme.dart';
 import '../utils/constants.dart';
 import '../models/pokeagent.dart';
 import '../services/wallet_service.dart';
+import '../services/user_stats_service.dart';
 import '../data/pokemon_data.dart';
 
 class MintScreen extends StatefulWidget {
@@ -339,11 +340,40 @@ class _MintScreenState extends State<MintScreen> {
       return;
     }
 
+    // Check if user has enough balance
+    if (!walletService.hasEnoughBalance(WalletService.mintCost)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Text('🪙', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Insufficient balance! Need ${WalletService.mintCost.toInt()} POKO',
+                  style: GoogleFonts.poppins(color: Colors.white),
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       _isMinting = true;
     });
 
     try {
+      // Deduct minting cost
+      await walletService.deductTokens(WalletService.mintCost);
+
       // Create agent
       final agent = PokeAgent(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -367,15 +397,40 @@ class _MintScreenState extends State<MintScreen> {
 
       if (!mounted) return;
 
+      // Update user stats - add new Pokémon to count
+      final statsService = Provider.of<UserStatsService>(
+        context,
+        listen: false,
+      );
+      await statsService.addPokemon();
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
               const Icon(Icons.check_circle, color: Colors.white),
               const SizedBox(width: 10),
-              Text(
-                'Agent minted successfully!',
-                style: GoogleFonts.poppins(color: Colors.white),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Agent minted successfully!',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Text(
+                      '-${WalletService.mintCost.toInt()} POKO',
+                      style: GoogleFonts.poppins(
+                        color: Colors.white70,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -390,6 +445,9 @@ class _MintScreenState extends State<MintScreen> {
       Navigator.pop(context, agent);
     } catch (e) {
       if (!mounted) return;
+
+      // Refund on failure
+      await walletService.addTokens(WalletService.mintCost);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -919,6 +977,35 @@ class _MintScreenState extends State<MintScreen> {
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.white,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Text(
+                                        '🪙',
+                                        style: TextStyle(fontSize: 12),
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        '${WalletService.mintCost.toInt()}',
+                                        style: GoogleFonts.poppins(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.w700,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],

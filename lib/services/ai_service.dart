@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../data/pokemon_data.dart';
 import '../utils/constants.dart';
 
 class AIService {
@@ -151,10 +152,24 @@ class AIService {
     int stage,
   ) {
     final evolvedNames = {1: name, 2: "$name-X", 3: "Mega-$name"};
+    final evolvedName = evolvedNames[stage] ?? name;
+
+    // Try to get the correct image URL from PokemonData
+    String newImageUrl = PokemonData.getPngUrl(evolvedName);
+
+    // Fallback to generic images if PokemonData doesn't have the evolved form
+    if (newImageUrl.isEmpty) {
+      final evolutionImages = [
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png',
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png',
+        'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png',
+      ];
+      newImageUrl = evolutionImages[(stage - 1) % evolutionImages.length];
+    }
 
     return {
-      'newName': evolvedNames[stage] ?? name,
-      'newImageUrl': 'https://via.placeholder.com/300?text=Stage$stage',
+      'newName': evolvedName,
+      'newImageUrl': newImageUrl,
       'description': '$name has evolved to stage $stage!',
       'statBoost': {
         'hp': 20,

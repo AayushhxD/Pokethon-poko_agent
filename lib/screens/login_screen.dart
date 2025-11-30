@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'home_screen.dart';
+import 'package:provider/provider.dart';
+import '../services/firebase_auth_service.dart';
 import 'onboarding_screen.dart';
 import 'signup_screen.dart';
+import 'wallet_connect_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -13,6 +15,30 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  bool _isGoogleLoading = false;
+
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isGoogleLoading = true);
+
+    final authService = Provider.of<FirebaseAuthService>(
+      context,
+      listen: false,
+    );
+    final result = await authService.signInWithGoogle();
+
+    setState(() => _isGoogleLoading = false);
+
+    if (result.success && mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const WalletConnectScreen()),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.message), backgroundColor: Colors.red),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,9 +172,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       child: SizedBox(
                         width: double.infinity,
                         child: OutlinedButton.icon(
-                          onPressed: () {
-                            // TODO: Implement Google Sign In
-                          },
+                          onPressed:
+                              _isGoogleLoading ? null : _signInWithGoogle,
                           style: OutlinedButton.styleFrom(
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             side: const BorderSide(
@@ -160,13 +185,27 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                             backgroundColor: Colors.white,
                           ),
-                          icon: Image.asset(
-                            'assets/images/google_icon.png',
-                            width: 24,
-                            height: 24,
-                          ),
+                          icon:
+                              _isGoogleLoading
+                                  ? const SizedBox(
+                                    height: 20,
+                                    width: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF3861FB),
+                                      ),
+                                    ),
+                                  )
+                                  : Image.asset(
+                                    'assets/images/google_icon.png',
+                                    width: 24,
+                                    height: 24,
+                                  ),
                           label: Text(
-                            'Continue with Google',
+                            _isGoogleLoading
+                                ? 'Signing in...'
+                                : 'Continue with Google',
                             style: GoogleFonts.poppins(
                               fontSize: 15,
                               fontWeight: FontWeight.w500,
@@ -290,21 +329,60 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate login process
-    await Future.delayed(const Duration(seconds: 2));
-
-    // For demo purposes, accept any email/password
-    if (_emailController.text.isNotEmpty &&
-        _passwordController.text.isNotEmpty) {
-      // Navigate to home screen
-      if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
-        );
-      }
-    }
+    final authService = Provider.of<FirebaseAuthService>(
+      context,
+      listen: false,
+    );
+    final result = await authService.signInWithEmail(
+      email: _emailController.text.trim(),
+      password: _passwordController.text,
+    );
 
     setState(() => _isLoading = false);
+
+    if (result.success && mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (context) => const WalletConnectScreen()),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please enter your email first'),
+          backgroundColor: Colors.orange,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    final authService = Provider.of<FirebaseAuthService>(
+      context,
+      listen: false,
+    );
+    final result = await authService.sendPasswordResetEmail(email);
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(result.message),
+          backgroundColor: result.success ? Colors.green : Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
   }
 
   @override
@@ -495,7 +573,25 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 12),
+
+                    // Forgot Password link
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _forgotPassword,
+                        child: Text(
+                          'Forgot Password?',
+                          style: GoogleFonts.poppins(
+                            color: const Color(0xFF3861FB),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+
+                    const SizedBox(height: 16),
 
                     // Login button
                     FadeInUp(

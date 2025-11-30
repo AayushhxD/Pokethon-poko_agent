@@ -2,11 +2,13 @@ import 'package:flutter/material.dart' hide Badge;
 import 'package:animate_do/animate_do.dart';
 import 'package:confetti/confetti.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:provider/provider.dart';
+import 'dart:math';
 import '../utils/theme.dart';
-import '../utils/constants.dart';
 import '../models/pokeagent.dart';
 import '../services/ai_service.dart';
 import '../services/badge_service.dart';
+import '../services/wallet_service.dart';
 import '../widgets/chat_bubble.dart';
 import '../data/pokemon_data.dart';
 import 'package:poko_agent/screens/training_activities.dart';
@@ -35,12 +37,40 @@ class _TrainScreenState extends State<TrainScreen>
   final _confettiController = ConfettiController(
     duration: const Duration(seconds: 3),
   );
-  final List<Map<String, String>> _messages = [];
+  final List<Map<String, dynamic>> _messages = [];
   bool _isLoading = false;
   bool _showDetails = true;
   late PokeAgent _currentAgent;
   late AnimationController _fabAnimationController;
   late Animation<double> _fabScaleAnimation;
+
+  // Training effectiveness system
+  int _trainingStreak = 0;
+  int _sessionXP = 0;
+
+  // Training keywords for bonus XP
+  final List<String> _trainingKeywords = [
+    'train',
+    'practice',
+    'learn',
+    'attack',
+    'defend',
+    'speed',
+    'power',
+    'strong',
+    'move',
+    'ability',
+    'skill',
+    'battle',
+    'fight',
+    'technique',
+    'exercise',
+    'workout',
+    'improve',
+    'level',
+    'evolve',
+    'grow',
+  ];
 
   // Pokemon stats data
   final Map<String, Map<String, dynamic>> _pokemonStats =
@@ -56,6 +86,8 @@ class _TrainScreenState extends State<TrainScreen>
     _messages.add({
       'role': 'agent',
       'message': 'Hey trainer! Ready to train? Let\'s get stronger together! ⚡',
+      'xpGain': 0,
+      'trainingType': null,
     });
 
     _fabAnimationController = AnimationController(
@@ -264,6 +296,36 @@ class _TrainScreenState extends State<TrainScreen>
   Future<void> _sendMessage() async {
     if (_messageController.text.trim().isEmpty) return;
 
+    final walletService = Provider.of<WalletService>(context, listen: false);
+
+    // Check if user has enough balance for training
+    if (!walletService.hasEnoughBalance(WalletService.trainCost)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Text('🪙', style: TextStyle(fontSize: 18)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'Insufficient balance! Need ${WalletService.trainCost.toInt()} POKO for training',
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+        ),
+      );
+      return;
+    }
+
+    // Deduct training cost
+    await walletService.deductTokens(WalletService.trainCost);
+
     final userMessage = _messageController.text.trim();
     _messageController.clear();
 
@@ -271,8 +333,16 @@ class _TrainScreenState extends State<TrainScreen>
       _fabAnimationController.reverse();
     });
 
+    // Analyze message for training effectiveness
+    final trainingAnalysis = _analyzeTrainingMessage(userMessage);
+
     setState(() {
-      _messages.add({'role': 'user', 'message': userMessage});
+      _messages.add({
+        'role': 'user',
+        'message': userMessage,
+        'xpGain': 0,
+        'trainingType': trainingAnalysis['type'],
+      });
       _isLoading = true;
     });
 
@@ -289,12 +359,33 @@ class _TrainScreenState extends State<TrainScreen>
 
       if (!mounted) return;
 
+      // Calculate XP based on training effectiveness
+      int xpGain = _calculateTrainingXP(userMessage, trainingAnalysis);
+      String trainingFeedback = _getTrainingFeedback(trainingAnalysis, xpGain);
+
       setState(() {
-        _messages.add({'role': 'agent', 'message': response});
+        _messages.add({
+          'role': 'agent',
+          'message': response,
+          'xpGain': xpGain,
+          'trainingType': trainingAnalysis['type'],
+          'feedback': trainingFeedback,
+        });
         _isLoading = false;
 
+        // Update streak
+        if (trainingAnalysis['isTrainingRelated'] == true) {
+          _trainingStreak++;
+        } else {
+          _trainingStreak = max(0, _trainingStreak - 1);
+        }
+
+        // Update session XP
+        _sessionXP += xpGain;
+
         String newMood = _currentAgent.mood;
-        int newMoodLevel = (_currentAgent.moodLevel + 5).clamp(0, 100);
+        int moodBoost = trainingAnalysis['isTrainingRelated'] == true ? 8 : 3;
+        int newMoodLevel = (_currentAgent.moodLevel + moodBoost).clamp(0, 100);
 
         if (newMoodLevel >= 90) {
           newMood = 'excited';
@@ -303,7 +394,7 @@ class _TrainScreenState extends State<TrainScreen>
         }
 
         _currentAgent = _currentAgent.copyWith(
-          xp: _currentAgent.xp + AppConstants.chatXPReward,
+          xp: _currentAgent.xp + xpGain,
           lastInteraction: DateTime.now(),
           totalChats: _currentAgent.totalChats + 1,
           mood: newMood,
@@ -322,10 +413,115 @@ class _TrainScreenState extends State<TrainScreen>
         _messages.add({
           'role': 'agent',
           'message': 'Oops! Something went wrong. Try again!',
+          'xpGain': 0,
+          'trainingType': null,
         });
         _isLoading = false;
       });
     }
+  }
+
+  Map<String, dynamic> _analyzeTrainingMessage(String message) {
+    final lowerMessage = message.toLowerCase();
+
+    // Check for training-related keywords
+    bool isTrainingRelated = _trainingKeywords.any(
+      (keyword) => lowerMessage.contains(keyword),
+    );
+
+    // Determine training type
+    String? trainingType;
+    int effectiveness = 1;
+
+    if (lowerMessage.contains('attack') ||
+        lowerMessage.contains('power') ||
+        lowerMessage.contains('hit') ||
+        lowerMessage.contains('strike')) {
+      trainingType = 'attack';
+      effectiveness = 3;
+    } else if (lowerMessage.contains('defend') ||
+        lowerMessage.contains('block') ||
+        lowerMessage.contains('protect') ||
+        lowerMessage.contains('guard')) {
+      trainingType = 'defense';
+      effectiveness = 3;
+    } else if (lowerMessage.contains('speed') ||
+        lowerMessage.contains('fast') ||
+        lowerMessage.contains('quick') ||
+        lowerMessage.contains('agility')) {
+      trainingType = 'speed';
+      effectiveness = 3;
+    } else if (lowerMessage.contains('special') ||
+        lowerMessage.contains('ability') ||
+        lowerMessage.contains('move') ||
+        lowerMessage.contains('technique')) {
+      trainingType = 'special';
+      effectiveness = 4;
+    } else if (lowerMessage.contains('battle') ||
+        lowerMessage.contains('fight') ||
+        lowerMessage.contains('combat')) {
+      trainingType = 'battle';
+      effectiveness = 5;
+    } else if (isTrainingRelated) {
+      trainingType = 'general';
+      effectiveness = 2;
+    }
+
+    // Bonus for longer, more detailed messages
+    if (message.length > 50) effectiveness += 1;
+    if (message.length > 100) effectiveness += 1;
+
+    // Question bonus (showing curiosity)
+    if (message.contains('?')) effectiveness += 1;
+
+    return {
+      'isTrainingRelated': isTrainingRelated,
+      'type': trainingType,
+      'effectiveness': effectiveness,
+    };
+  }
+
+  int _calculateTrainingXP(String message, Map<String, dynamic> analysis) {
+    int baseXP = 5; // Base XP for chatting
+
+    if (analysis['isTrainingRelated'] != true) {
+      return baseXP; // Just chatting, minimal XP
+    }
+
+    int effectiveness = analysis['effectiveness'] ?? 1;
+    int xp = baseXP + (effectiveness * 5);
+
+    // Streak bonus
+    if (_trainingStreak >= 3) {
+      xp += 5; // Combo bonus
+    }
+    if (_trainingStreak >= 5) {
+      xp += 10; // Super combo
+    }
+    if (_trainingStreak >= 10) {
+      xp += 20; // Ultra combo!
+    }
+
+    return xp;
+  }
+
+  String _getTrainingFeedback(Map<String, dynamic> analysis, int xpGain) {
+    if (analysis['isTrainingRelated'] != true) {
+      return 'Keep chatting to bond with your Pokémon!';
+    }
+
+    String type = analysis['type'] ?? 'general';
+    int effectiveness = analysis['effectiveness'] ?? 1;
+
+    if (effectiveness >= 5) {
+      return '🔥 Excellent training session!';
+    } else if (effectiveness >= 3) {
+      return '💪 Great $type training!';
+    } else if (effectiveness >= 2) {
+      return '👍 Good practice!';
+    }
+
+    return '✨ Nice effort!';
   }
 
   void _scrollToBottom() {
@@ -449,7 +645,7 @@ class _TrainScreenState extends State<TrainScreen>
           Transform.translate(
             offset: const Offset(0, -80),
             child: Hero(
-              tag: 'agent-${_currentAgent.id}',
+              tag: 'train-screen-agent-${_currentAgent.id}',
               child: Container(
                 width: 200,
                 height: 200,
@@ -1083,6 +1279,9 @@ class _TrainScreenState extends State<TrainScreen>
           // Toggle Tabs
           _buildToggleTabs(typeColor),
 
+          // Training Stats Bar
+          _buildTrainingStatsBar(typeColor),
+
           // Messages
           Expanded(
             child:
@@ -1095,6 +1294,8 @@ class _TrainScreenState extends State<TrainScreen>
                       itemBuilder: (context, index) {
                         final message = _messages[index];
                         final isUser = message['role'] == 'user';
+                        final xpGain = message['xpGain'] as int? ?? 0;
+                        final feedback = message['feedback'] as String?;
 
                         return SlideInUp(
                           duration: const Duration(milliseconds: 300),
@@ -1104,10 +1305,27 @@ class _TrainScreenState extends State<TrainScreen>
                             duration: const Duration(milliseconds: 300),
                             child: Padding(
                               padding: const EdgeInsets.only(bottom: 16),
-                              child: ChatBubble(
-                                message: message['message']!,
-                                isUser: isUser,
-                                agentColor: typeColor,
+                              child: Column(
+                                crossAxisAlignment:
+                                    isUser
+                                        ? CrossAxisAlignment.end
+                                        : CrossAxisAlignment.start,
+                                children: [
+                                  ChatBubble(
+                                    message: message['message']!,
+                                    isUser: isUser,
+                                    agentColor: typeColor,
+                                  ),
+                                  // Show XP gain and feedback for agent messages
+                                  if (!isUser && xpGain > 0) ...[
+                                    const SizedBox(height: 6),
+                                    _buildXPIndicator(
+                                      xpGain,
+                                      feedback,
+                                      typeColor,
+                                    ),
+                                  ],
+                                ],
                               ),
                             ),
                           ),
@@ -1119,6 +1337,149 @@ class _TrainScreenState extends State<TrainScreen>
           if (_isLoading) _buildTypingIndicator(typeColor),
         ],
       ),
+    );
+  }
+
+  Widget _buildTrainingStatsBar(Color typeColor) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [typeColor.withOpacity(0.1), typeColor.withOpacity(0.05)],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: typeColor.withOpacity(0.2)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          // Session XP
+          _buildStatItem(
+            icon: Icons.star_rounded,
+            label: 'Session XP',
+            value: '+$_sessionXP',
+            color: Colors.amber,
+          ),
+          Container(width: 1, height: 30, color: typeColor.withOpacity(0.2)),
+          // Training Streak
+          _buildStatItem(
+            icon: Icons.local_fire_department,
+            label: 'Streak',
+            value: '$_trainingStreak${_trainingStreak >= 3 ? '🔥' : ''}',
+            color: _trainingStreak >= 3 ? Colors.orange : Colors.grey,
+          ),
+          Container(width: 1, height: 30, color: typeColor.withOpacity(0.2)),
+          // Total XP
+          _buildStatItem(
+            icon: Icons.trending_up,
+            label: 'Total XP',
+            value: '${_currentAgent.xp}',
+            color: typeColor,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 4),
+            Text(
+              value,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: color,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildXPIndicator(int xpGain, String? feedback, Color typeColor) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.amber.shade400, Colors.orange.shade400],
+            ),
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.amber.withOpacity(0.3),
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.star, color: Colors.white, size: 14),
+              const SizedBox(width: 4),
+              Text(
+                '+$xpGain XP',
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (feedback != null && feedback.isNotEmpty) ...[
+          const SizedBox(width: 8),
+          Text(
+            feedback,
+            style: TextStyle(
+              fontSize: 12,
+              color: typeColor,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ],
+        if (_trainingStreak >= 3) ...[
+          const SizedBox(width: 8),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: Colors.orange.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.orange.withOpacity(0.3)),
+            ),
+            child: Text(
+              '${_trainingStreak}x Combo!',
+              style: const TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.bold,
+                color: Colors.orange,
+              ),
+            ),
+          ),
+        ],
+      ],
     );
   }
 
@@ -1280,50 +1641,118 @@ class _TrainScreenState extends State<TrainScreen>
 
   Widget _buildEmptyState(Color typeColor) {
     return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            FadeInDown(
+              duration: const Duration(milliseconds: 600),
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: typeColor.withOpacity(0.1),
+                ),
+                child: Icon(
+                  Icons.fitness_center,
+                  size: 60,
+                  color: typeColor.withOpacity(0.6),
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            FadeInUp(
+              duration: const Duration(milliseconds: 600),
+              delay: const Duration(milliseconds: 200),
+              child: Text(
+                'Start Training!',
+                style: TextStyle(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey.shade900,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            FadeInUp(
+              duration: const Duration(milliseconds: 600),
+              delay: const Duration(milliseconds: 400),
+              child: Text(
+                'Train with ${_currentAgent.name} to earn XP!\nUse training keywords for bonus XP.',
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey.shade600,
+                  height: 1.5,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            const SizedBox(height: 24),
+            FadeInUp(
+              duration: const Duration(milliseconds: 600),
+              delay: const Duration(milliseconds: 600),
+              child: _buildTrainingTipsCard(typeColor),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTrainingTipsCard(Color typeColor) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: typeColor.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: typeColor.withOpacity(0.2)),
+      ),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          FadeInDown(
-            duration: const Duration(milliseconds: 600),
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: typeColor.withOpacity(0.1),
+          Row(
+            children: [
+              Icon(Icons.tips_and_updates, color: typeColor, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                'Training Tips',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: typeColor,
+                ),
               ),
-              child: Icon(
-                Icons.chat_bubble_outline_rounded,
-                size: 60,
-                color: typeColor.withOpacity(0.6),
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          FadeInUp(
-            duration: const Duration(milliseconds: 600),
-            delay: const Duration(milliseconds: 200),
-            child: Text(
-              'Start Training!',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade900,
-              ),
-            ),
+            ],
           ),
           const SizedBox(height: 12),
-          FadeInUp(
-            duration: const Duration(milliseconds: 600),
-            delay: const Duration(milliseconds: 400),
+          _buildTipRow('💪', 'Attack training: "Practice power moves"'),
+          _buildTipRow('🛡️', 'Defense training: "Work on blocking"'),
+          _buildTipRow('⚡', 'Speed training: "Get faster and quicker"'),
+          _buildTipRow('✨', 'Special training: "Learn new techniques"'),
+          _buildTipRow('🔥', 'Build a streak for combo bonuses!'),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTipRow(String emoji, String tip) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(emoji, style: const TextStyle(fontSize: 14)),
+          const SizedBox(width: 8),
+          Expanded(
             child: Text(
-              'Send a message to start training\nwith ${_currentAgent.name}',
+              tip,
               style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-                height: 1.5,
+                fontSize: 13,
+                color: Colors.grey.shade700,
+                height: 1.4,
               ),
-              textAlign: TextAlign.center,
             ),
           ),
         ],

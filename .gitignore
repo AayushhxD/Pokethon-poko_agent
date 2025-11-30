@@ -43,3 +43,18 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Security - Never commit these files
+*.keystore
+*.jks
+key.properties
+.env
+.env.*
+google-services.json
+GoogleService-Info.plist
+**/secrets/
+**/*-key.json
+**/*.p12
+**/*.pem
+**/firebase_options.dart
+

@@ -8,14 +8,18 @@ class AppConstants {
   static const String evolveEndpoint = '/evolve';
 
   // Blockchain Configuration
+  static const String ethSepoliaRpcUrl = 'https://rpc.sepolia.org';
   static const String baseSepoliaRpcUrl = 'https://sepolia.base.org';
   static const String baseMainnetRpcUrl = 'https://mainnet.base.org';
+  static const int ethSepoliaChainId = 11155111;
   static const int baseSepoliaChainId = 84532;
   static const int baseMainnetChainId = 8453;
 
   // Contract Addresses (Update after deployment)
   static const String pokeAgentContractAddress =
-      '0x...'; // Replace with your contract
+      '0x149D84071CCB00913C96Db947fCb9000C1Da963C'; // Deployed on Ethereum Sepolia
+  static const String battleContractAddress =
+      '0x149D84071CCB00913C96Db947fCb9000C1Da963C'; // Deployed on Ethereum Sepolia
 
   // IPFS Configuration
   static const String ipfsGateway = 'https://ipfs.io/ipfs/';
